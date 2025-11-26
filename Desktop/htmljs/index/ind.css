@@ -1,0 +1,79 @@
+#mh{
+    color: cornflowerblue;
+    font-size: 70px;
+    text-align: center;
+    font-style: italic;
+    background-color: antiquewhite;
+}
+#wlc{
+    text-align: center;
+    text-transform: uppercase;
+    font-style: oblique;
+}
+/* ::placeholder{
+
+} */
+#ip{
+    align-self: center;
+    text-align: center;
+    
+}
+
+#name{
+     align-self: center;
+    text-align: center;
+    color:aquamarine;
+    background-color: rgb(250, 229, 215);
+
+
+}
+#name:hover{
+    background-color: rgb(127, 255, 153);
+}
+.bc{
+    text-align: center;
+    font-style: normal;
+}
+
+#stone{
+    background-color:white;
+    /* text-align: left;
+    flex-wrap: wrap;
+    justify-content: flex-start; */
+    width:100px;
+height: 100px;
+}
+#tic{
+    background-color:white;
+    /* text-align: center; */
+    /* flex-wrap: wrap; */
+    /* justify-content: flex-start; */
+    width:100px;
+height: 100px;
+}
+#nb{
+    height: 100%;
+    background-color:lightgreen;
+    border-color:yellow;
+    border-radius: 20%;
+    border-width: 10px;
+}
+.game{
+    background-color:white;
+    text-align: center;
+    flex-wrap: wrap;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    justify-content: flex-start;
+    width:500px;
+height: 500px;
+margin: auto;
+}
+#st{
+    height: 100%;
+    background-color:lightgreen;
+    border-color:yellow;
+    border-radius: 20%;
+    border-width: 10px;
+}

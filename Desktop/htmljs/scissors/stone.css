@@ -1,0 +1,147 @@
+#mainheading{
+    color: darkgreen;
+    text-align: center;
+    text-decoration: dotted;
+    text-shadow: 4ch;
+    text-decoration-thickness: 100px;
+    text-size-adjust: 100px;
+}
+.container{
+    display:flex;
+     background-color:white;
+    text-align: center;
+    flex-wrap: wrap;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    justify-content: flex-start;
+    width:700px;
+height: 205px;
+margin: auto;
+}
+#stid{
+    
+   padding: 5px; /* Adds space around the image */
+  background: none; /* Removes default button background */
+  border: none; /* Removes default button border */
+
+}
+#pid{
+   
+  padding: 5px; /* Adds space around the image */
+  background: none; /* Removes default button background */
+  border: none; /* Removes default button border */
+
+
+
+    
+}
+#scid{
+   
+   padding: 5px; /* Adds space around the image */
+  background: none; /* Removes default button background */
+  border: none; /* Removes default button border */
+
+
+    
+}
+/* button */
+/* #stid{
+     height: 200px;
+    width:200px;
+
+}
+#pid{
+     height: 200px;
+    width:200px;
+
+}
+#scid{
+     height: 200px;
+    width:200px;
+
+} */
+/* images */
+#stimg{
+      width: 200px;
+  height: 200px;
+  display: block;
+  border-radius: 80%;
+
+}
+#pimg{
+       width: 200px;
+  height: 200px;
+  display: block;
+   border-radius: 80%;
+
+
+}
+#scimg{
+      width: 200px;
+  height: 200px;
+  display: block;
+   border-radius: 80%;
+}
+/* line */
+#line1{
+    border-width: 5px;
+    border-color:pink;
+}
+/* #line{
+    border-width: 5px;
+    border-color:greenyellow;
+} */
+/* messga */
+
+.msg{
+    display: flex;
+    justify-content: center;
+    align-self: center;
+    height:102px;
+    width: 110px;
+    /* background-color:aqua; */
+    margin: 0 auto;
+    
+}
+#winmsg{
+    margin:0 auto;
+    font-size: x-large;
+    border-style:ridge;
+    text-transform: uppercase;
+    border-radius: 10%;
+    border-width: 5px;
+    width:300px;
+    height:80px;
+    align-self: center;
+    justify-content: center;
+    text-align: center;
+    display: flex;
+    background-color: skyblue;
+}
+#ps{
+  background-color: white;
+  border-radius: 80%;
+  border-color: rgb(20, 255, 106);
+  font-style: italic;
+  color:yellowgreen;
+  text-decoration-style: dotted;
+   margin-left: 10px;
+   border-width: 10px;
+  /* font-size: 10px; */
+  /* height:100px;
+  width:50px; */
+}
+#cs{
+    background-color: white;
+  border-radius: 80%;
+  border-color: rgb(20, 255, 106);
+  font-style: italic;
+  color:yellowgreen;
+  text-decoration-style: dotted;
+   border-width: 10px;
+ 
+  /* font-size: 10px; */
+  /* height:100px;
+  width:50px; */
+}

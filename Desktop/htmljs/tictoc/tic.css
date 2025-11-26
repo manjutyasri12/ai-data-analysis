@@ -1,0 +1,82 @@
+#mainheading{
+    color: darkgreen;
+    text-align: center;
+    text-decoration: dotted;
+    text-shadow: 4ch;
+    text-decoration-thickness: 100px;
+    text-size-adjust: 100px;
+}
+.box{
+    background-color: olivedrab;
+    color:black;
+    height:400px;
+    width:310px;
+    align-self: center;
+text-align: center;
+margin: auto;
+border-radius: 10%;
+flex-wrap: wrap;
+}
+#reset{
+    padding: 1rem;
+    background-color: rgb(9, 204, 234);
+    color:black;
+    font-size: 50%;
+    height:50px;
+    width:100px;
+    align-self: center;
+text-align: center;
+margin: auto;
+border-radius: 10%;
+
+}
+#line{
+    height: 3px;
+    background-color: rgb(26, 242, 59);
+}
+.mb{
+    height:100px;
+    width:100px;
+    background-color: rgb(155, 213, 32);
+    border-radius: 10%;
+
+}
+#b5{
+    background-color: antiquewhite;
+
+}
+#b1,#b3,#b7,#b9{
+    background-color:orange;
+    color:black;
+}
+.msgc{
+    height: 60px;
+    width: 300px;
+    text-align: center;
+    margin:auto;
+    
+}
+#wmsg{
+    
+    color:red;
+    font-size: 300%;
+     text-align: center;
+     margin-left: auto;
+     margin-right: auto;
+
+ text-indent: initial;
+    margin:auto;
+    align-self: center;
+    
+}
+.hide{
+    display:none;
+}
+#ng{
+    background-color: rgb(1, 10, 2);
+    color:aliceblue;
+     text-align: center;
+    margin:auto;
+    align-items: center;
+}
+
