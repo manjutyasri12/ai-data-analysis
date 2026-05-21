@@ -1,0 +1,281 @@
+═══════════════════════════════════════════════════════════════════════════════
+                     ML SECTION - SYSTEM ARCHITECTURE
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          USER INTERFACE LAYER                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  base.html (navbar)                                                         │
+│  └─ 🤖 ML Models Link                                                       │
+│                                                                             │
+│  ml_section.html                      ml_train_model.html                   │
+│  ├─ Model Introduction Cards          ├─ Target Column Select              │
+│  ├─ Auto-Train Form                   ├─ Model Selection Dropdown          │
+│  ├─ Comparison Table                  ├─ Training Form                     │
+│  ├─ Best Model Highlight              ├─ Detailed Results                  │
+│  ├─ Expandable Details                └─ Error Display                     │
+│  ├─ Statistics Cards                                                        │
+│  └─ Navigation                                                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↕
+                          HTTP REQUESTS & RESPONSES
+                                    ↕
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          VIEW LAYER (Django)                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  views.py                                                                   │
+│  ├─ ml_section(request)                                                     │
+│  │  ├─ Load data from session                                              │
+│  │  ├─ Detect problem type                                                 │
+│  │  ├─ Call auto_train_all_models()                                        │
+│  │  ├─ Format results                                                       │
+│  │  └─ Render ml_section.html                                              │
+│  │                                                                          │
+│  └─ ml_train_model(request)                                                │
+│     ├─ Load data from session                                              │
+│     ├─ Get selected model                                                  │
+│     ├─ Call train_single_model()                                           │
+│     ├─ Return metrics                                                      │
+│     └─ Render ml_train_model.html                                          │
+│                                                                             │
+│  urls.py                                                                    │
+│  ├─ /ml/ → ml_section                                                      │
+│  └─ /ml/train/ → ml_train_model                                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↕
+                          FUNCTION CALLS & DATA
+                                    ↕
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SERVICES LAYER - MODEL TRAINING                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  services/ml_models.py                                                      │
+│  ├─ REGRESSION_MODELS Dict (6 models)                                      │
+│  │  ├─ Linear Regression                                                   │
+│  │  ├─ Polynomial Regression (degree=2)                                    │
+│  │  ├─ Decision Tree Regressor                                             │
+│  │  ├─ Random Forest Regressor                                             │
+│  │  ├─ SVR                                                                 │
+│  │  └─ Gradient Boosting Regressor                                         │
+│  │                                                                          │
+│  ├─ CLASSIFICATION_MODELS Dict (6 models)                                  │
+│  │  ├─ Logistic Regression                                                 │
+│  │  ├─ Decision Tree Classifier                                            │
+│  │  ├─ Random Forest Classifier                                            │
+│  │  ├─ SVM                                                                 │
+│  │  ├─ KNN                                                                 │
+│  │  └─ Gaussian Naive Bayes                                                │
+│  │                                                                          │
+│  └─ Helper Functions:                                                       │
+│     ├─ get_regression_models()                                             │
+│     ├─ get_classification_models()                                         │
+│     ├─ get_model(name, type)                                               │
+│     └─ get_all_model_names()                                               │
+│                                                                             │
+│  services/model_training.py                                                 │
+│  ├─ build_preprocessor(df, cols)                                           │
+│  │  ├─ ColumnTransformer                                                   │
+│  │  ├─ Numeric Pipeline (Impute → Scale)                                   │
+│  │  └─ Categorical Pipeline (Impute → OneHot)                              │
+│  │                                                                          │
+│  ├─ compute_regression_metrics(y_true, y_pred)                             │
+│  │  ├─ MAE                                                                 │
+│  │  ├─ RMSE                                                                │
+│  │  └─ R² Score                                                            │
+│  │                                                                          │
+│  ├─ compute_classification_metrics(y_true, y_pred)                         │
+│  │  ├─ Accuracy                                                            │
+│  │  ├─ Precision (macro)                                                   │
+│  │  ├─ Recall (macro)                                                      │
+│  │  └─ F1-Score (macro)                                                    │
+│  │                                                                          │
+│  ├─ train_single_model(model, X_train, X_test, y_train, y_test, type)     │
+│  │  ├─ Create Pipeline with Preprocessor                                   │
+│  │  ├─ Train Model                                                         │
+│  │  ├─ Make Predictions                                                    │
+│  │  ├─ Compute Metrics                                                     │
+│  │  └─ Return Results                                                      │
+│  │                                                                          │
+│  ├─ auto_train_all_models(df, target, type)                                │
+│  │  ├─ Data Preparation                                                    │
+│  │  ├─ Train-Test Split                                                    │
+│  │  ├─ Loop through all models                                             │
+│  │  ├─ Train each model                                                    │
+│  │  ├─ Filter valid results                                                │
+│  │  ├─ Sort by accuracy (descending)                                       │
+│  │  └─ Return ranked results                                               │
+│  │                                                                          │
+│  └─ format_results_for_display(results)                                    │
+│     └─ Format for template rendering                                       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↕
+                          SKLEARN MODELS & PIPELINES
+                                    ↕
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          SCIKIT-LEARN LAYER                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Regression Models          Classification Models                           │
+│  ├─ LinearRegression         ├─ LogisticRegression                         │
+│  ├─ Pipeline                 ├─ DecisionTreeClassifier                     │
+│  │  └─ PolynomialFeatures    ├─ RandomForestClassifier                     │
+│  │  └─ LinearRegression      ├─ SVC                                        │
+│  ├─ DecisionTreeRegressor    ├─ KNeighborsClassifier                       │
+│  ├─ RandomForestRegressor    └─ GaussianNB                                 │
+│  ├─ SVR                                                                     │
+│  └─ GradientBoostingRegressor  Utilities:                                   │
+│                               ├─ StandardScaler                            │
+│  Preprocessing:              ├─ OneHotEncoder                              │
+│  ├─ SimpleImputer            ├─ ColumnTransformer                          │
+│  ├─ StandardScaler           ├─ Pipeline                                   │
+│  ├─ OneHotEncoder            ├─ train_test_split                           │
+│  └─ ColumnTransformer        └─ Metrics (accuracy, precision, etc.)        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↕
+                          DATA PROCESSING FLOW
+                                    ↕
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        DATA FLOW - AUTO-TRAIN                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. USER UPLOADS CSV                                                        │
+│     ↓                                                                       │
+│  2. DJANGO STORES IN SESSION                                               │
+│     ↓                                                                       │
+│  3. USER SELECTS TARGET COLUMN                                             │
+│     ↓                                                                       │
+│  4. DETECT PROBLEM TYPE                                                     │
+│     ├─ Float dtype → Regression                                            │
+│     └─ Few unique/object → Classification                                  │
+│     ↓                                                                       │
+│  5. LOAD DATA FROM SESSION                                                 │
+│     ↓                                                                       │
+│  6. PREPARE FEATURES & TARGET                                              │
+│     ├─ Remove duplicates                                                   │
+│     ├─ Handle missing values                                               │
+│     └─ Create feature matrix X and target y                                │
+│     ↓                                                                       │
+│  7. TRAIN-TEST SPLIT (80/20)                                               │
+│     ↓                                                                       │
+│  8. BUILD PREPROCESSOR                                                      │
+│     ├─ Numeric: Impute + Scale                                             │
+│     └─ Categorical: Impute + OneHot                                        │
+│     ↓                                                                       │
+│  9. FOR EACH MODEL:                                                         │
+│     ├─ Load model instance                                                 │
+│     ├─ Create pipeline (preprocessor + model)                              │
+│     ├─ Train on X_train, y_train                                           │
+│     ├─ Predict on X_test                                                   │
+│     ├─ Compute metrics                                                     │
+│     └─ Store result                                                        │
+│     ↓                                                                       │
+│  10. FILTER VALID RESULTS                                                   │
+│     ├─ Remove None accuracies                                              │
+│     └─ Safe float conversion                                               │
+│     ↓                                                                       │
+│  11. SORT BY ACCURACY (DESCENDING)                                          │
+│     ↓                                                                       │
+│  12. FORMAT FOR DISPLAY                                                     │
+│     ├─ Best model first                                                    │
+│     ├─ Failed models at end                                                │
+│     └─ All metrics included                                                │
+│     ↓                                                                       │
+│  13. RENDER COMPARISON TABLE                                               │
+│     ├─ All 12 models shown                                                 │
+│     ├─ Best highlighted (green)                                            │
+│     ├─ All metrics visible                                                 │
+│     └─ Expandable details                                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      ERROR HANDLING ARCHITECTURE                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Safe Float Conversion                                                      │
+│  └─ def _safe_float(x):                                                     │
+│     ├─ Return None if x is None                                            │
+│     ├─ Convert to float                                                    │
+│     ├─ Detect NaN/Inf → Return None                                        │
+│     └─ Exception → Return None                                             │
+│                                                                             │
+│  Individual Model Errors                                                    │
+│  └─ try:                                                                    │
+│     ├─ Train model                                                         │
+│     ├─ Compute metrics                                                     │
+│     └─ catch Exception:                                                    │
+│        └─ Mark as failed, continue with others                             │
+│                                                                             │
+│  Results Filtering                                                          │
+│  └─ valid_results = [r for r in results if r['accuracy'] is not None]     │
+│                                                                             │
+│  Template Error Display                                                     │
+│  └─ {% if result.error %}                                                  │
+│     └─ Display error message to user                                       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    METRICS CALCULATION ARCHITECTURE                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  REGRESSION METRICS:                                                        │
+│  ├─ MAE = mean_absolute_error(y_true, y_pred)                              │
+│  ├─ MSE = mean_squared_error(y_true, y_pred)                               │
+│  ├─ RMSE = sqrt(MSE)                                                       │
+│  ├─ R² = r2_score(y_true, y_pred)                                          │
+│  └─ Accuracy = R² (for regression)                                         │
+│                                                                             │
+│  CLASSIFICATION METRICS:                                                    │
+│  ├─ Accuracy = accuracy_score(y_true, y_pred)                              │
+│  ├─ Precision = precision_score(..., average='macro')                      │
+│  ├─ Recall = recall_score(..., average='macro')                            │
+│  └─ F1 = f1_score(..., average='macro')                                    │
+│                                                                             │
+│  All metrics:                                                               │
+│  ├─ Safe float conversion                                                  │
+│  ├─ NaN/Inf detection                                                      │
+│  └─ None for invalid values                                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      SESSION DATA FLOW                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Session Keys:                                                              │
+│  ├─ 'data' → Raw DataFrame (JSON)                                          │
+│  ├─ 'cleaned_data' → Cleaned DataFrame (JSON)                              │
+│  ├─ 'file_name' → Uploaded file name                                       │
+│  ├─ 'last_target_column' → Last selected column                            │
+│  └─ 'cleaned_columns' → Available columns                                  │
+│                                                                             │
+│  Session Lifecycle:                                                         │
+│  ├─ Upload: Populate all session keys                                      │
+│  ├─ Navigate: Use session data                                             │
+│  ├─ Train: Read from session                                               │
+│  └─ Clear: Delete session on logout                                        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+                          COMPONENT RELATIONSHIPS
+═══════════════════════════════════════════════════════════════════════════════
+
+   Templates
+      ↕ (HTTP)
+     Views
+      ↕ (import)
+   Services
+      ↕ (import)
+   Scikit-learn
+      ↕ (data)
+   Pandas/NumPy
+
+═══════════════════════════════════════════════════════════════════════════════

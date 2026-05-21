@@ -1,0 +1,78 @@
+{% extends 'dataapp/base.html' %}
+{% load dataapp_extras %}
+{% block title %}Dataset Overview{% endblock %}
+{% block content %}
+<div class="alert alert-success">Dataset uploaded successfully: <strong>{{ file_name }}</strong></div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="metric-card"><div class="value">{{ overview.rows }}</div><div>Rows</div></div></div>
+    <div class="col-md-3"><div class="metric-card"><div class="value">{{ overview.cols }}</div><div>Columns</div></div></div>
+    <div class="col-md-3"><div class="metric-card"><div class="value">{{ overview.dataset_size }}</div><div>Dataset Size</div></div></div>
+    <div class="col-md-3"><div class="metric-card"><div class="value">{{ overview.duplicate_rows }}</div><div>Duplicate Rows</div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="panel h-100">
+            <div class="panel-header"><h2 class="h5 mb-0">Schema</h2></div>
+            <div class="panel-body">
+                <p><strong>Numerical:</strong> {{ overview.numerical_columns|join:", " }}</p>
+                <p><strong>Categorical:</strong> {{ overview.categorical_columns|join:", " }}</p>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead><tr><th>Column</th><th>Type</th><th>Missing</th></tr></thead>
+                        <tbody>
+                        {% for col, dtype in overview.dtypes.items %}
+                            <tr><td>{{ col }}</td><td>{{ dtype }}</td><td>{{ overview.missing_values|get_item:col }}</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel h-100">
+            <div class="panel-header"><h2 class="h5 mb-0">Preprocessing Report</h2></div>
+            <div class="panel-body">
+                {% for line in preprocessing_report.summary %}
+                    <div class="alert alert-light border py-2 mb-2">{{ line }}</div>
+                {% endfor %}
+                {% if preprocessing_report.label_encodings %}
+                    <h3 class="h6 mt-3">Label Encoding</h3>
+                    {% for item in preprocessing_report.label_encodings %}
+                        <div class="mb-2"><strong>{{ item.column }}</strong>
+                            <div class="small text-secondary">{{ item.mapping }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                {% if preprocessing_report.outliers %}
+                    <h3 class="h6 mt-3">Outlier Handling</h3>
+                    {% for item in preprocessing_report.outliers %}
+                        <div class="small">{{ item.column }}: capped {{ item.capped }} values between {{ item.lower }} and {{ item.upper }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel mt-4">
+    <div class="panel-header"><h2 class="h5 mb-0">Raw Data Table</h2></div>
+    <div class="panel-body table-responsive">{{ preview|safe }}</div>
+</div>
+
+<div class="panel mt-4">
+    <div class="panel-header"><h2 class="h5 mb-0">Cleaned Data Table</h2></div>
+    <div class="panel-body">
+        <div class="alert alert-warning py-2">Changed values are highlighted.</div>
+        <div class="table-responsive">{{ cleaned_changed_table|safe }}</div>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mt-4">
+    <a href="{% url 'dataapp:analyze' %}" class="btn btn-primary">Statistics</a>
+    <a href="{% url 'dataapp:visualize' %}" class="btn btn-success">Charts</a>
+    <a href="{% url 'dataapp:ai_train' %}" class="btn btn-dark">Auto Train</a>
+</div>
+{% endblock %}

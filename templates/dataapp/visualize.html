@@ -1,0 +1,40 @@
+{% extends 'dataapp/base.html' %}
+{% block title %}Smart Visualizations{% endblock %}
+{% block content %}
+<div class="panel mb-4">
+    <div class="panel-header">
+        <h1 class="h4 mb-1">Smart Visualizations</h1>
+        <div class="text-secondary">{{ file_name }}</div>
+    </div>
+    <div class="panel-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">Target column for feature graphs</label>
+                <select name="target" class="form-select">
+                    <option value="">No target selected</option>
+                    {% for col in columns %}
+                        <option value="{{ col }}" {% if col == selected_target %}selected{% endif %}>{{ col }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3"><button class="btn btn-success w-100">Generate</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for chart in charts %}
+        <div class="col-12">
+            <div class="panel">
+                <div class="panel-header d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">{{ chart.title }}</h2>
+                    <span class="badge text-bg-light border">{{ chart.kind }}</span>
+                </div>
+                <div class="panel-body">{{ chart.html|safe }}</div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12"><div class="alert alert-warning">No meaningful charts could be generated for this dataset.</div></div>
+    {% endfor %}
+</div>
+{% endblock %}

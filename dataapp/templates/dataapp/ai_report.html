@@ -1,0 +1,47 @@
+{% extends 'dataapp/base.html' %}
+{% block title %}AI Report{% endblock %}
+{% block content %}
+<div class="panel mb-4">
+    <div class="panel-header"><h1 class="h4 mb-0">AI Report</h1></div>
+    <div class="panel-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row g-3 align-items-end">
+                <div class="col-md-7">
+                    <label class="form-label">Target column</label>
+                    {{ form.target_column }}
+                </div>
+                <div class="col-md-3"><button class="btn btn-primary w-100">Build Report</button></div>
+            </div>
+        </form>
+        {% if error %}<div class="alert alert-danger mt-3">{{ error }}</div>{% endif %}
+    </div>
+</div>
+
+{% if understanding %}
+<div class="panel mb-4">
+    <div class="panel-header"><h2 class="h5 mb-0">Dataset Understanding</h2></div>
+    <div class="panel-body">
+        <p><strong>Type:</strong> {{ understanding.dataset_type }}</p>
+        <p><strong>Recommended model:</strong> {{ understanding.recommended_model }}</p>
+        <p><strong>Important features:</strong> {{ understanding.important_features|join:", " }}</p>
+    </div>
+</div>
+{% endif %}
+
+{% if leaderboard %}
+<div class="panel">
+    <div class="panel-header"><h2 class="h5 mb-0">Training Leaderboard</h2></div>
+    <div class="panel-body table-responsive">
+        <table class="table table-sm table-striped">
+            <thead><tr><th>Model</th><th>Accuracy</th><th>F1</th><th>R2</th><th>Status</th></tr></thead>
+            <tbody>
+            {% for row in leaderboard %}
+                <tr><td>{{ row.model_name }}</td><td>{{ row.accuracy }}</td><td>{{ row.f1_score }}</td><td>{{ row.r2_score }}</td><td>{{ row.status }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

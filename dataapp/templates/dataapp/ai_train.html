@@ -1,0 +1,84 @@
+{% extends 'dataapp/base.html' %}
+
+{% block title %}Auto Model Training{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="card">
+      <div class="card-header bg-success text-white">
+        <h3 class="mb-0">Auto Model Training</h3>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'dataapp:ai_train' %}" class="row g-3">
+          {% csrf_token %}
+          <div class="col-md-6">
+            <label class="form-label">Target column</label>
+            <select class="form-select" name="target_column" required>
+              <option value="">Select</option>
+              {% for c in columns %}
+                <option value="{{ c }}" {% if c == selected_target %}selected{% endif %}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-success w-100" type="submit">Train & Select Best</button>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <a class="btn btn-primary w-100" href="{% url 'dataapp:ai_insights' %}">AI Insights</a>
+          </div>
+        </form>
+
+        {% if result %}
+        <hr>
+        <div class="card border-success">
+          <div class="card-header bg-light">
+            <h5 class="text-success mb-0">Best Model</h5>
+          </div>
+          <div class="card-body">
+            <p class="mb-1"><strong>Best model:</strong> {{ result.best_model_name }}</p>
+            <p class="mb-0"><strong>Best score:</strong> {{ result.best_score }}</p>
+          </div>
+        </div>
+
+        {% if result.leaderboard and result.leaderboard|length > 0 %}
+          <div class="card mt-3">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">Leaderboard</h5>
+            </div>
+            <div class="card-body">
+              <table class="table table-striped">
+                <thead><tr><th>Model</th><th>Score</th></tr></thead>
+                <tbody>
+                  {% for row in result.leaderboard %}
+                    <tr>
+                      <td>{{ row.model }}</td>
+                      <td>{{ row.score }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="alert alert-info mt-3 mb-0">
+          {% if model_path %}
+            <strong>Model saved to:</strong> {{ model_path }}
+          {% else %}
+            <strong>Model not saved.</strong> Auto-training may be unavailable for this dataset type in the CSV demo.
+          {% endif %}
+        </div>
+
+
+        {% endif %}
+      </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger mt-3">{{ error }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

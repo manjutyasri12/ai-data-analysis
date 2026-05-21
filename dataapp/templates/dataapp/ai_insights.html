@@ -1,0 +1,56 @@
+{% extends 'dataapp/base.html' %}
+
+{% block title %}AI Insights Generator{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="card">
+      <div class="card-header bg-info text-white">
+        <h3 class="mb-0">AI Insights Generator</h3>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'dataapp:ai_insights' %}" class="row g-3">
+          {% csrf_token %}
+          <div class="col-md-6">
+            <label class="form-label">Target column</label>
+            <select class="form-select" name="target_column" required>
+              <option value="">Select</option>
+              {% for c in columns %}
+                <option value="{{ c }}" {% if c == selected_target %}selected{% endif %}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-info w-100" type="submit">Generate Insights</button>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <a class="btn btn-warning w-100" href="{% url 'dataapp:ai_report' %}">Generate Report</a>
+          </div>
+        </form>
+
+        {% if insights %}
+        <hr>
+        <div class="card">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">Insights</h5>
+          </div>
+          <div class="card-body">
+            <ul>
+              {% for i in insights %}
+                <li class="mb-2">{{ i }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger mt-3">{{ error }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

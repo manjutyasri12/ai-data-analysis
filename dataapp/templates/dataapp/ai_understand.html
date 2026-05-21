@@ -1,0 +1,54 @@
+{% extends 'dataapp/base.html' %}
+{% block title %}AI Understand{% endblock %}
+{% block content %}
+<div class="panel mb-4">
+    <div class="panel-header">
+        <h1 class="h4 mb-1">AI Understand</h1>
+        <div class="text-secondary">Full-dataset analysis, not a single-row summary.</div>
+    </div>
+    <div class="panel-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row g-3 align-items-end">
+                <div class="col-md-7">
+                    <label class="form-label">Target column</label>
+                    {{ form.target_column }}
+                </div>
+                <div class="col-md-3"><button class="btn btn-primary w-100">Analyze</button></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if understanding %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="metric-card"><div class="value">{{ understanding.dataset_type }}</div><div>Dataset Type</div></div></div>
+    <div class="col-md-3"><div class="metric-card"><div class="value">{{ understanding.rows }}</div><div>Rows</div></div></div>
+    <div class="col-md-3"><div class="metric-card"><div class="value">{{ understanding.columns }}</div><div>Columns</div></div></div>
+    <div class="col-md-3"><div class="metric-card"><div class="value">{{ understanding.quality_score }}</div><div>Quality Score</div></div></div>
+</div>
+<div class="panel">
+    <div class="panel-header"><h2 class="h5 mb-0">Recommendation</h2></div>
+    <div class="panel-body">
+        <p><strong>Best ML approach:</strong> {{ understanding.best_ml_approach }}</p>
+        <p><strong>Recommended model:</strong> {{ understanding.recommended_model }}</p>
+        <p><strong>Why:</strong> {{ understanding.why_model_selected }}</p>
+        <p><strong>Important features:</strong> {{ understanding.important_features|join:", " }}</p>
+        {% if understanding.imbalance %}
+            <p><strong>Data imbalance:</strong> largest class {{ understanding.imbalance.largest_class }} at {{ understanding.imbalance.largest_percent }}% across {{ understanding.imbalance.class_count }} classes.</p>
+        {% endif %}
+        {% if understanding.correlations %}
+            <h3 class="h6">Top Correlations</h3>
+            <table class="table table-sm">
+                <thead><tr><th>Feature</th><th>Correlation</th></tr></thead>
+                <tbody>
+                {% for item in understanding.correlations %}
+                    <tr><td>{{ item.feature }}</td><td>{{ item.correlation }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
