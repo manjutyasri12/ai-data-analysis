@@ -1,0 +1,128 @@
+.taskbar{
+    height:70px;
+    width:1800px;
+    background-color:rgb(192, 224, 62);
+    display:flex;
+    
+    
+}
+*{
+    margin:0;
+    padding: 0;
+
+}
+#heading{
+    text-transform: capitalize;
+    height: 80px;
+    width:220px;
+    display: flex;
+    justify-content:center;
+    text-align: center;
+    display:flex;
+    
+}
+#headingt{
+    text-decoration-style: double;
+    margin-top: 11px;
+    margin-left: 10px;
+    text-transform:uppercase;
+    font-family:Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    
+    
+}
+#m{
+    color: white;
+    font-size: 20px;
+}
+#m1{
+    text-transform: lowercase;
+    font-style: italic;
+}
+.tbtn{
+    
+    height: 40px;
+    display: flex;
+    width:1100px;
+    margin-left: 80px;
+    margin-top: 10px;
+}
+#btn1{
+    margin-top:10px;
+    margin-left:18px;
+}
+#btn2{
+    margin-top:10px;
+    margin-left:18px;
+    text-decoration-color: blueviolet;
+}
+#btn3{
+    margin-top:10px;
+     margin-left:18px;
+    text-decoration-color: blueviolet;
+}
+#btn4{
+    margin-top:10px;
+     margin-left:18px;
+    text-decoration-color: blueviolet;
+}
+
+#btn5{
+    margin-top:10px;
+    margin-left:18px;
+}
+#btn7{
+    margin-top:10px;
+    margin-left:18px;
+}
+#btn6{
+    margin-top:10px;
+    margin-left:18px;
+}
+#btn8{
+    margin-top:10px;
+    margin-left:18px;
+}
+#fruits{
+    background-color: aquamarine;
+    height: 25px;
+    width:150px;
+}
+.main{
+    background-color: transparent;
+    border-radius: 2%;
+    width:700px;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 5px;
+    margin-left: 100px;
+    margin-top:30px;
+}
+.p1{
+    margin-top: 20px;
+}
+#hb{
+    margin-top: 20px;
+    background-color:skyblue;
+    border-radius: 10%;
+    margin-bottom:10px;
+    
+}
+.bpage{
+    background-color: black;
+    height: 272px;
+    width:100%;
+}
+.about{
+    height: 120px;
+    width: 700px;
+    /* background-color: red; */
+    margin-left: 100px;
+    padding-top: 50px;
+    padding-left: 470px;
+
+
+}
+#abtext{
+    color: aliceblue;
+}

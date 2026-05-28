@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="VisualCogn: Accessible tools for visually impaired and cognitive users. Extract text, convert to speech, and simplify content.">
+  <title>VisualCogn — Accessible Learning Tools</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <!-- Skip to main content link for keyboard users -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Screen reader announcement area for all live updates -->
+  <div aria-live="polite" aria-atomic="true" class="sr-only" id="screen-reader-announcement"></div>
+
+  <header role="banner" class="page-header">
+    <div class="header-content">
+      <h1 id="site-title" class="site-title">VisualCogn</h1>
+      <p class="site-tagline">Tools for Visually Impaired & Cognitive Learners</p>
+      <p id="site-greeting" class="sr-only">Welcome to VisualCogn. A website for accessible learning and document processing.</p>
+    </div>
+  </header>
+
+  <!-- Navigation with accessibility options -->
+  <nav role="navigation" aria-label="Settings and help" class="settings-nav">
+    <button id="font-size-increase" class="btn-icon" aria-label="Increase font size" title="Press + to increase">🔤+</button>
+    <button id="font-size-decrease" class="btn-icon" aria-label="Decrease font size" title="Press - to decrease">🔤-</button>
+    <button id="toggle-dark-mode" class="btn-icon" aria-label="Toggle dark mode" title="Press D to toggle">🌙</button>
+    <button id="toggle-quiet-mode" class="btn-icon" aria-label="Toggle quiet mode" title="Press Q to toggle">🔕</button>
+    <button id="show-help" class="btn-icon" aria-label="Show keyboard shortcuts" title="Press H for help">❓</button>
+  </nav>
+
+  <main id="main-content" class="page-main" role="main">
+    <!-- Help modal -->
+    <dialog id="help-dialog" aria-labelledby="help-title" class="help-modal">
+      <div class="help-content">
+        <h2 id="help-title">Keyboard Shortcuts</h2>
+        <button id="close-help" class="btn-close" aria-label="Close help">×</button>
+        <div class="help-list">
+          <h3>File Operations</h3>
+          <ul>
+            <li><kbd>U</kbd> – Upload file</li>
+            <li><kbd>E</kbd> – Extract text</li>
+          </ul>
+          
+          <h3>Processing</h3>
+          <ul>
+            <li><kbd>S</kbd> – Summarize text</li>
+            <li><kbd>R</kbd> – Read aloud</li>
+            <li><kbd>D</kbd> – Download MP3</li>
+          </ul>
+          
+          <h3>Settings</h3>
+          <ul>
+            <li><kbd>+</kbd> – Increase font size</li>
+            <li><kbd>-</kbd> – Decrease font size</li>
+            <li><kbd>D</kbd> – Toggle dark mode</li>
+            <li><kbd>Q</kbd> – Toggle quiet mode</li>
+            <li><kbd>H</kbd> – Show this help</li>
+          </ul>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Main content sections -->
+    <section id="file-upload" class="section">
+      <h2>Step 1: Upload Your File</h2>
+      <p class="instruction">Upload a PDF, image, or text file. We'll extract the text for you.</p>
+      
+      <div class="form-group">
+        <label for="file-input" class="label-required">Select file to upload:</label>
+        <div class="file-input-wrapper">
+          <input 
+            id="file-input" 
+            type="file" 
+            accept=".pdf,.png,.jpg,.jpeg,.bmp,.tiff,.gif,.txt"
+            aria-describedby="file-help"
+            class="file-input"
+          />
+          <button id="upload-btn" class="btn btn-primary" aria-label="Upload selected file (Shortcut: U)">
+            📁 Upload File <span class="kbd">U</span>
+          </button>
+        </div>
+        <small id="file-help" class="form-help">Supported: PDF, images (PNG, JPG), TXT files. Max 50MB.</small>
+      </div>
+
+      <div id="file-status" aria-live="polite" aria-atomic="true" class="status-message"></div>
+    </section>
+
+    <!-- Extraction section -->
+    <section id="text-extraction" class="section">
+      <h2>Step 2: Extract Text</h2>
+      <p class="instruction">Get text from your uploaded file.</p>
+      
+      <div class="button-group">
+        <button id="extract-btn" class="btn btn-secondary" aria-label="Extract text from file (Shortcut: E)">
+          🔍 Extract Text <span class="kbd">E</span>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label for="extracted-text">Extracted text:</label>
+        <textarea 
+          id="extracted-text" 
+          class="textarea"
+          rows="8"
+          aria-describedby="extracted-help"
+          readonly
+        ></textarea>
+        <small id="extracted-help" class="form-help">The text from your file will appear here.</small>
+      </div>
+
+      <div class="form-group">
+        <button id="read-extracted-btn" class="btn btn-secondary" aria-label="Read extracted text aloud">
+          🔈 Read Extracted Text
+        </button>
+        <small class="form-help">Reads only the extracted text (does not read the summary).</small>
+      </div>
+
+      <div id="image-info" class="info-box" aria-live="polite" aria-atomic="true"></div>
+    </section>
+
+    <!-- Processing section -->
+    <section id="text-processing" class="section">
+      <h2>Step 3: Process Your Text</h2>
+      
+      <!-- Summarize subsection -->
+      <div class="subsection">
+        <h3>For Easier Understanding (Summary)</h3>
+        <p class="instruction">Get a short, simple summary of your text.</p>
+        
+        <button id="summary-btn" class="btn btn-secondary" aria-label="Create simple summary (Shortcut: S)">
+          📝 Summarize Text <span class="kbd">S</span>
+        </button>
+        
+        <div class="form-group">
+          <label for="summary">Summary:</label>
+          <div id="summary" class="output-box" aria-live="polite" aria-atomic="true"></div>
+          <small class="form-help">A shorter version of your text for easier reading.</small>
+        </div>
+      </div>
+
+      <!-- Text to speech subsection -->
+      <div class="subsection">
+        <h3>Listen to Your Text (Text to Speech)</h3>
+        <p class="instruction">Hear your text read aloud. You can adjust the reading speed.</p>
+        
+        <div class="form-group">
+          <label for="speed-control">Reading speed:</label>
+          <div class="speed-control">
+            <button id="speed-decr" class="btn-icon" aria-label="Slow down reading (Shortcut: )">🐢 Slower</button>
+            <span id="speed-display" class="speed-display" aria-live="assertive">1.0x</span>
+            <button id="speed-incr" class="btn-icon" aria-label="Speed up reading (Shortcut: ])">Faster 🐇</button>
+          </div>
+          <small class="form-help">Adjust between 0.5x (very slow) and 2.0x (very fast).</small>
+        </div>
+
+        <div class="button-group">
+          <button id="play-tts-btn" class="btn btn-secondary" aria-label="Read text aloud (Shortcut: R)">
+            🔊 Read Aloud <span class="kbd">R</span>
+          </button>
+          <button id="stop-tts-btn" class="btn btn-secondary" aria-label="Stop reading">
+            ⏹️ Stop
+          </button>
+        </div>
+      </div>
+
+      <!-- Download MP3 subsection -->
+      <div class="subsection">
+        <h3>Download as Audio File</h3>
+        <p class="instruction">Save your text as an MP3 audio file to listen later.</p>
+        
+        <button id="download-mp3-btn" class="btn btn-secondary" aria-label="Download text as MP3 (Shortcut: D)">
+          ⬇️ Download MP3 <span class="kbd">D</span>
+        </button>
+        <small class="form-help">You can play the MP3 file on any device.</small>
+      </div>
+    </section>
+
+    <!-- Speech to Braille section -->
+    <section id="speech-to-braille" class="section">
+      <h2>Step 4: Speech to Braille (Optional)</h2>
+      <p class="instruction">Record your voice and convert it to Braille format.</p>
+      
+      <div class="form-group">
+        <label for="audio-input" class="label-required">Select audio file:</label>
+        <div class="file-input-wrapper">
+          <input 
+            id="audio-input" 
+            type="file" 
+            accept="audio/*"
+            aria-describedby="audio-help"
+            class="file-input"
+          />
+          <button id="audio-upload-btn" class="btn btn-primary" aria-label="Upload audio file for Braille conversion">
+            🎤 Upload Speech
+          </button>
+        </div>
+        <small id="audio-help" class="form-help">Supported: MP3, WAV, and other common audio formats.</small>
+      </div>
+
+      <div id="braille-section" class="braille-output" style="display: none;">
+        <div class="form-group">
+          <label for="recognized-text">Recognized text (Original):</label>
+          <div id="recognized-text" class="output-box" aria-live="polite" aria-atomic="true"></div>
+          <small class="form-help">The recognized words from your audio (shown for reference).</small>
+        </div>
+
+        <div class="form-group">
+          <label for="braille">Braille output (Symbols):</label>
+          <div id="braille" class="output-box braille-text" aria-live="polite" aria-atomic="true"></div>
+          <small class="form-help">Braille symbols corresponding to the recognized text. Both original text and symbols are shown for reference.</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- Progress indicator -->
+    <div id="progress-indicator" class="progress-indicator" aria-live="polite" aria-atomic="true"></div>
+  </main>
+
+  <footer role="contentinfo" class="page-footer">
+    <div class="footer-content">
+      <p><strong>VisualCogn</strong> by Decent Debuggers</p>
+      <p>Making the web accessible for everyone.</p>
+      <p><small>WCAG 2.1 AA compliant. Keyboard navigable. Screen reader friendly.</small></p>
+    </div>
+  </footer>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+This is a test document for the VisualCogn application.
+
+The VisualCogn platform is designed to help visually impaired and cognitively diverse students access and process documents with ease. Using advanced text extraction, text-to-speech synthesis, and image analysis features, it empowers users to learn independently.
+
+Key features include:
+1. File Upload and Text Extraction - Extract text from PDFs, images, and other document formats
+2. Text-to-Speech - Hear the extracted content read aloud in a natural voice
+3. Summarization - Get a quick summary of long documents for easier understanding
+4. Image Analysis - Get descriptions of images including faces, colors, and embedded text
+5. Speech-to-Braille Conversion - Convert spoken words to Braille characters
+
+The application prioritizes accessibility with full keyboard navigation, screen reader support, dark mode, and customizable text sizing.
+
+This test file verifies that the text extraction feature is working correctly.
