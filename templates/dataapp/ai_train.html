@@ -1,11 +1,16 @@
 {% extends 'dataapp/base.html' %}
 {% block title %}Auto Train{% endblock %}
 {% block content %}
-<div class="panel mb-4">
-    <div class="panel-header">
-        <h1 class="h4 mb-1">Auto Train</h1>
-        <div class="text-secondary">Trains every supported model, filters invalid scores, and saves only the best model.</div>
+<div class="page-header">
+    <div>
+        <div class="eyebrow">Model Studio</div>
+        <h1 class="page-title">Auto Train</h1>
+        <div class="page-subtitle">Train supported models, compare metrics, and save the best-performing artifact.</div>
     </div>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-header"><div><h2 class="panel-title">Training Configuration</h2><div class="panel-kicker">Select the prediction target and start training</div></div></div>
     <div class="panel-body">
         <form method="post" onsubmit="document.getElementById('train-progress').classList.remove('d-none')">
             {% csrf_token %}
@@ -15,73 +20,70 @@
                     {{ form.target_column }}
                 </div>
                 <div class="col-md-3">
-                    <button class="btn btn-dark w-100">Auto Train</button>
+                    <button class="btn btn-dark w-100"><i class="bi bi-play-fill me-1"></i> Auto Train</button>
                 </div>
             </div>
-            <div id="train-progress" class="d-none mt-4"><div class="loader-bar"></div></div>
+            <div id="train-progress" class="d-none mt-4">
+                <div class="d-flex justify-content-between small text-secondary mb-2"><span>Training Progress</span><span>Running pipeline</span></div>
+                <div class="loader-bar"></div>
+            </div>
         </form>
         {% if error %}<div class="alert alert-danger mt-3">{{ error }}</div>{% endif %}
     </div>
 </div>
 
 {% if success %}
-<div class="alert alert-success">
-    <strong>Model trained successfully.</strong>
-    Best model: <strong>{{ result.best_model_name }}</strong>.
-    Accuracy: <strong>{{ best_accuracy_display }}</strong>.
-    Dataset: <strong>{{ file_name }}</strong>.
-</div>
-
 <div class="row g-3 mb-4">
-    <div class="col-md-4"><div class="metric-card"><div class="value">{{ result.best_model_name }}</div><div>Best Model</div></div></div>
-    <div class="col-md-4"><div class="metric-card"><div class="value">{{ best_accuracy_display }}</div><div>Best Accuracy</div></div></div>
-    <div class="col-md-4"><div class="metric-card"><div class="value">{{ result.problem_type|title }}</div><div>Detected Task</div></div></div>
+    <div class="col-md-4"><div class="metric-card"><div class="metric-icon"><i class="bi bi-trophy"></i></div><div><div class="metric-label">Best Model</div><div class="value">{{ result.best_model_name }}</div></div></div></div>
+    <div class="col-md-4"><div class="metric-card"><div class="metric-icon"><i class="bi bi-speedometer2"></i></div><div><div class="metric-label">Best Accuracy</div><div class="value">{{ best_accuracy_display }}</div></div></div></div>
+    <div class="col-md-4"><div class="metric-card"><div class="metric-icon"><i class="bi bi-diagram-3"></i></div><div><div class="metric-label">Detected Task</div><div class="value">{{ result.problem_type|title }}</div></div></div></div>
 </div>
 
 <div class="panel mb-4">
-    <div class="panel-header d-flex justify-content-between align-items-center">
-        <h2 class="h5 mb-0">Model Downloads</h2>
-        <div class="d-flex gap-2">
-            <a class="btn btn-sm btn-outline-success" href="{% url 'dataapp:download_model' trained_model.id 'joblib' %}">Download Joblib</a>
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'dataapp:download_model' trained_model.id 'pkl' %}">Download Pickle</a>
+    <div class="panel-header">
+        <div><h2 class="panel-title">Training Output</h2><div class="panel-kicker">Saved model artifacts for {{ file_name }}</div></div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-sm btn-outline-success" href="{% url 'dataapp:download_model' trained_model.id 'joblib' %}"><i class="bi bi-download me-1"></i> Download Joblib</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'dataapp:download_model' trained_model.id 'pkl' %}"><i class="bi bi-download me-1"></i> Download Pickle</a>
         </div>
+    </div>
+    <div class="panel-body">
+        <div class="progress-soft"><span></span></div>
+        <div class="small text-secondary mt-2">Training completed and best model selected.</div>
     </div>
 </div>
 
 <div class="panel">
-    <div class="panel-header"><h2 class="h5 mb-0">Model Comparison</h2></div>
-    <div class="panel-body table-responsive">
-        <table class="table table-sm table-striped align-middle">
-            <thead>
-            <tr>
-                <th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th>
-                <th>R2</th><th>MAE</th><th>RMSE</th><th>CV</th><th>Time</th><th>Status</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for row in leaderboard %}
-                <tr class="{% if row.model_name == result.best_model_name %}table-success{% endif %}">
-                    <td><strong>{{ row.model_name }}</strong></td>
-                    <td>{% if row.accuracy != None %}{{ row.accuracy|floatformat:4 }}{% endif %}</td>
-                    <td>{% if row.precision != None %}{{ row.precision|floatformat:4 }}{% endif %}</td>
-                    <td>{% if row.recall != None %}{{ row.recall|floatformat:4 }}{% endif %}</td>
-                    <td>{% if row.f1_score != None %}{{ row.f1_score|floatformat:4 }}{% endif %}</td>
-                    <td>{% if row.r2_score != None %}{{ row.r2_score|floatformat:4 }}{% endif %}</td>
-                    <td>{% if row.mae != None %}{{ row.mae|floatformat:4 }}{% endif %}</td>
-                    <td>{% if row.rmse != None %}{{ row.rmse|floatformat:4 }}{% endif %}</td>
-                    <td>{% if row.cv_score != None %}{{ row.cv_score|floatformat:4 }}{% endif %}</td>
-                    <td>{{ row.training_time }}</td>
-                    <td>
-                        {% if row.status == 'success' %}
-                            <span class="badge text-bg-success">Success</span>
-                        {% else %}
-                            <span class="badge text-bg-danger" title="{{ row.error }}">Failed</span>
-                        {% endif %}
-                    </td>
+    <div class="panel-header"><div><h2 class="panel-title">Model Leaderboard</h2><div class="panel-kicker">Ranked by available scoring metrics</div></div></div>
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                <tr>
+                    <th>Rank</th><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1 Score</th>
+                    <th>R2</th><th>MAE</th><th>RMSE</th><th>CV</th><th>Training Time</th><th>Status</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                {% for row in leaderboard %}
+                    <tr class="{% if row.model_name == result.best_model_name %}leaderboard-best{% endif %}">
+                        <td><span class="rank-badge">{{ forloop.counter }}</span></td>
+                        <td><strong>{{ row.model_name }}</strong>{% if row.model_name == result.best_model_name %}<span class="badge text-bg-success ms-2">Best</span>{% endif %}</td>
+                        <td>{% if row.accuracy != None %}{{ row.accuracy|floatformat:4 }}{% endif %}</td>
+                        <td>{% if row.precision != None %}{{ row.precision|floatformat:4 }}{% endif %}</td>
+                        <td>{% if row.recall != None %}{{ row.recall|floatformat:4 }}{% endif %}</td>
+                        <td>{% if row.f1_score != None %}{{ row.f1_score|floatformat:4 }}{% endif %}</td>
+                        <td>{% if row.r2_score != None %}{{ row.r2_score|floatformat:4 }}{% endif %}</td>
+                        <td>{% if row.mae != None %}{{ row.mae|floatformat:4 }}{% endif %}</td>
+                        <td>{% if row.rmse != None %}{{ row.rmse|floatformat:4 }}{% endif %}</td>
+                        <td>{% if row.cv_score != None %}{{ row.cv_score|floatformat:4 }}{% endif %}</td>
+                        <td>{{ row.training_time }}</td>
+                        <td>{% if row.status == 'success' %}<span class="badge text-bg-success">Success</span>{% else %}<span class="badge text-bg-danger" title="{{ row.error }}">Failed</span>{% endif %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endif %}

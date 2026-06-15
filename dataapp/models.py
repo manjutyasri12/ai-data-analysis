@@ -104,3 +104,33 @@ class PredictionHistory(models.Model):
 
     def __str__(self):
         return f"Prediction {self.pk}"
+
+
+class ConversationHistory(models.Model):
+    """Stores conversation messages between user and Gemini AI"""
+    dataset = models.ForeignKey(
+        UploadedDataset,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="conversations",
+    )
+    session_id = models.CharField(max_length=255, db_index=True, default="default")
+    role = models.CharField(
+        max_length=20,
+        choices=[("user", "User"), ("assistant", "Assistant")],
+        default="user"
+    )
+    message = models.TextField()
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["session_id", "created_at"]),
+            models.Index(fields=["dataset", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.role.title()}: {self.message[:50]}"

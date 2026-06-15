@@ -1,8 +1,16 @@
 {% extends 'dataapp/base.html' %}
 {% block title %}AI Report{% endblock %}
 {% block content %}
+<div class="page-header">
+    <div>
+        <div class="eyebrow">Executive Report</div>
+        <h1 class="page-title">AI Report</h1>
+        <div class="page-subtitle">Create a model-aware report with dataset understanding and training leaderboard.</div>
+    </div>
+</div>
+
 <div class="panel mb-4">
-    <div class="panel-header"><h1 class="h4 mb-0">AI Report</h1></div>
+    <div class="panel-header"><div><h2 class="panel-title">Report Setup</h2><div class="panel-kicker">Select a target column to build the report context</div></div></div>
     <div class="panel-body">
         <form method="post">
             {% csrf_token %}
@@ -11,7 +19,7 @@
                     <label class="form-label">Target column</label>
                     {{ form.target_column }}
                 </div>
-                <div class="col-md-3"><button class="btn btn-primary w-100">Build Report</button></div>
+                <div class="col-md-3"><button class="btn btn-primary w-100"><i class="bi bi-file-earmark-text me-1"></i> Build Report</button></div>
             </div>
         </form>
         {% if error %}<div class="alert alert-danger mt-3">{{ error }}</div>{% endif %}
@@ -19,28 +27,38 @@
 </div>
 
 {% if understanding %}
+<div class="row g-4 mb-4">
+    <div class="col-lg-4"><div class="metric-card"><div class="metric-icon"><i class="bi bi-diagram-3"></i></div><div><div class="metric-label">Dataset Type</div><div class="value">{{ understanding.dataset_type }}</div></div></div></div>
+    <div class="col-lg-4"><div class="metric-card"><div class="metric-icon"><i class="bi bi-cpu"></i></div><div><div class="metric-label">Recommended Model</div><div class="value">{{ understanding.recommended_model }}</div></div></div></div>
+    <div class="col-lg-4"><div class="metric-card"><div class="metric-icon"><i class="bi bi-shield-check"></i></div><div><div class="metric-label">Quality Score</div><div class="value">{{ understanding.quality_score }}</div></div></div></div>
+</div>
+
 <div class="panel mb-4">
-    <div class="panel-header"><h2 class="h5 mb-0">Dataset Understanding</h2></div>
+    <div class="panel-header"><div><h2 class="panel-title">Action Recommendations</h2><div class="panel-kicker">Important features and modeling direction</div></div></div>
     <div class="panel-body">
-        <p><strong>Type:</strong> {{ understanding.dataset_type }}</p>
-        <p><strong>Recommended model:</strong> {{ understanding.recommended_model }}</p>
-        <p><strong>Important features:</strong> {{ understanding.important_features|join:", " }}</p>
+        <div class="insight-grid">
+            <div class="insight-box"><h3>Important Features</h3><div class="text-secondary">{{ understanding.important_features|join:", " }}</div></div>
+            <div class="insight-box"><h3>Model Strategy</h3><div class="text-secondary">{{ understanding.best_ml_approach }}</div></div>
+            <div class="insight-box"><h3>Recommendation</h3><div class="text-secondary">{{ understanding.why_model_selected }}</div></div>
+        </div>
     </div>
 </div>
 {% endif %}
 
 {% if leaderboard %}
 <div class="panel">
-    <div class="panel-header"><h2 class="h5 mb-0">Training Leaderboard</h2></div>
-    <div class="panel-body table-responsive">
-        <table class="table table-sm table-striped">
-            <thead><tr><th>Model</th><th>Accuracy</th><th>F1</th><th>R2</th><th>Status</th></tr></thead>
-            <tbody>
-            {% for row in leaderboard %}
-                <tr><td>{{ row.model_name }}</td><td>{{ row.accuracy }}</td><td>{{ row.f1_score }}</td><td>{{ row.r2_score }}</td><td>{{ row.status }}</td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class="panel-header"><div><h2 class="panel-title">Training Leaderboard</h2><div class="panel-kicker">Model performance summary</div></div></div>
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead><tr><th>Rank</th><th>Model</th><th>Accuracy</th><th>F1 Score</th><th>R2</th><th>Status</th></tr></thead>
+                <tbody>
+                {% for row in leaderboard %}
+                    <tr><td><span class="rank-badge">{{ forloop.counter }}</span></td><td><strong>{{ row.model_name }}</strong></td><td>{{ row.accuracy }}</td><td>{{ row.f1_score }}</td><td>{{ row.r2_score }}</td><td>{{ row.status }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endif %}

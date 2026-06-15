@@ -2,28 +2,54 @@
 {% load dataapp_extras %}
 {% block title %}Dataset Overview{% endblock %}
 {% block content %}
-<div class="alert alert-success">Dataset uploaded successfully: <strong>{{ file_name }}</strong></div>
+<div class="page-header">
+    <div>
+        <div class="eyebrow">Dataset Ready</div>
+        <h1 class="page-title">{{ file_name }}</h1>
+        <div class="page-subtitle">Cleaned, profiled, and prepared for analysis workflows.</div>
+    </div>
+    <div class="status-pill"><span class="status-dot"></span> Loaded</div>
+</div>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="metric-card"><div class="value">{{ overview.rows }}</div><div>Rows</div></div></div>
-    <div class="col-md-3"><div class="metric-card"><div class="value">{{ overview.cols }}</div><div>Columns</div></div></div>
-    <div class="col-md-3"><div class="metric-card"><div class="value">{{ overview.dataset_size }}</div><div>Dataset Size</div></div></div>
-    <div class="col-md-3"><div class="metric-card"><div class="value">{{ overview.duplicate_rows }}</div><div>Duplicate Rows</div></div></div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="metric-card"><div class="metric-icon"><i class="bi bi-table"></i></div><div><div class="metric-label">Dataset Rows</div><div class="value">{{ overview.rows }}</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="metric-card"><div class="metric-icon"><i class="bi bi-columns-gap"></i></div><div><div class="metric-label">Dataset Columns</div><div class="value">{{ overview.cols }}</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="metric-card"><div class="metric-icon"><i class="bi bi-exclamation-circle"></i></div><div><div class="metric-label">Missing Values</div><div class="value">{{ preprocessing_report.missing_values|length }}</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="metric-card"><div class="metric-icon"><i class="bi bi-cpu"></i></div><div><div class="metric-label">Models Trained</div><div class="value">0</div><div class="metric-note">Start Auto Train</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="metric-card"><div class="metric-icon"><i class="bi bi-award"></i></div><div><div class="metric-label">Best Accuracy</div><div class="value">N/A</div></div></div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="metric-card"><div class="metric-icon"><i class="bi bi-lightning-charge"></i></div><div><div class="metric-label">Predictions</div><div class="value">0</div></div></div>
+    </div>
 </div>
 
 <div class="row g-4">
-    <div class="col-lg-6">
+    <div class="col-lg-5">
         <div class="panel h-100">
-            <div class="panel-header"><h2 class="h5 mb-0">Schema</h2></div>
+            <div class="panel-header">
+                <div><h2 class="panel-title">Schema</h2><div class="panel-kicker">Column types and missing-value profile</div></div>
+            </div>
             <div class="panel-body">
-                <p><strong>Numerical:</strong> {{ overview.numerical_columns|join:", " }}</p>
-                <p><strong>Categorical:</strong> {{ overview.categorical_columns|join:", " }}</p>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge text-bg-light border">Numeric: {{ overview.numerical_columns|length }}</span>
+                    <span class="badge text-bg-light border">Categorical: {{ overview.categorical_columns|length }}</span>
+                    <span class="badge text-bg-light border">Duplicate rows: {{ overview.duplicate_rows }}</span>
+                </div>
                 <div class="table-responsive">
-                    <table class="table table-sm">
+                    <table class="table table-sm align-middle">
                         <thead><tr><th>Column</th><th>Type</th><th>Missing</th></tr></thead>
                         <tbody>
                         {% for col, dtype in overview.dtypes.items %}
-                            <tr><td>{{ col }}</td><td>{{ dtype }}</td><td>{{ overview.missing_values|get_item:col }}</td></tr>
+                            <tr><td><strong>{{ col }}</strong></td><td>{{ dtype }}</td><td>{{ overview.missing_values|get_item:col }}</td></tr>
                         {% endfor %}
                         </tbody>
                     </table>
@@ -31,25 +57,27 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-7">
         <div class="panel h-100">
-            <div class="panel-header"><h2 class="h5 mb-0">Preprocessing Report</h2></div>
+            <div class="panel-header">
+                <div><h2 class="panel-title">Preprocessing Report</h2><div class="panel-kicker">Domain rules, imputation, encoding, and outlier handling</div></div>
+            </div>
             <div class="panel-body">
-                {% for line in preprocessing_report.summary %}
-                    <div class="alert alert-light border py-2 mb-2">{{ line }}</div>
-                {% endfor %}
-                {% if preprocessing_report.label_encodings %}
-                    <h3 class="h6 mt-3">Label Encoding</h3>
-                    {% for item in preprocessing_report.label_encodings %}
-                        <div class="mb-2"><strong>{{ item.column }}</strong>
-                            <div class="small text-secondary">{{ item.mapping }}</div>
-                        </div>
+                <div class="row g-3">
+                    {% for line in preprocessing_report.summary %}
+                        <div class="col-md-6"><div class="insight-box h-100"><h3><i class="bi bi-check2-circle text-success me-1"></i> Step</h3><div class="text-secondary">{{ line }}</div></div></div>
+                    {% endfor %}
+                </div>
+                {% if preprocessing_report.domain_rules %}
+                    <h3 class="h6 mt-4 mb-2">Domain Rules</h3>
+                    {% for item in preprocessing_report.domain_rules %}
+                        <div class="small text-secondary">{{ item.column }}: fixed {{ item.fixed_values }} values using {{ item.replacement }}</div>
                     {% endfor %}
                 {% endif %}
                 {% if preprocessing_report.outliers %}
-                    <h3 class="h6 mt-3">Outlier Handling</h3>
+                    <h3 class="h6 mt-4 mb-2">Outlier Handling</h3>
                     {% for item in preprocessing_report.outliers %}
-                        <div class="small">{{ item.column }}: capped {{ item.capped }} values between {{ item.lower }} and {{ item.upper }}</div>
+                        <div class="small text-secondary">{{ item.column }}: capped {{ item.capped }} values between {{ item.lower }} and {{ item.upper }}</div>
                     {% endfor %}
                 {% endif %}
             </div>
@@ -58,21 +86,18 @@
 </div>
 
 <div class="panel mt-4">
-    <div class="panel-header"><h2 class="h5 mb-0">Raw Data Table</h2></div>
-    <div class="panel-body table-responsive">{{ preview|safe }}</div>
+    <div class="panel-header"><div><h2 class="panel-title">Raw Data Table</h2><div class="panel-kicker">First 20 uploaded records</div></div></div>
+    <div class="panel-body"><div class="table-responsive">{{ preview|safe }}</div></div>
 </div>
 
 <div class="panel mt-4">
-    <div class="panel-header"><h2 class="h5 mb-0">Cleaned Data Table</h2></div>
-    <div class="panel-body">
-        <div class="alert alert-warning py-2">Changed values are highlighted.</div>
-        <div class="table-responsive">{{ cleaned_changed_table|safe }}</div>
-    </div>
+    <div class="panel-header"><div><h2 class="panel-title">Cleaned Data Table</h2><div class="panel-kicker">Changed cells are highlighted</div></div></div>
+    <div class="panel-body"><div class="table-responsive">{{ cleaned_changed_table|safe }}</div></div>
 </div>
 
 <div class="d-flex flex-wrap gap-2 mt-4">
-    <a href="{% url 'dataapp:analyze' %}" class="btn btn-primary">Statistics</a>
-    <a href="{% url 'dataapp:visualize' %}" class="btn btn-success">Charts</a>
-    <a href="{% url 'dataapp:ai_train' %}" class="btn btn-dark">Auto Train</a>
+    <a href="{% url 'dataapp:analyze' %}" class="btn btn-primary"><i class="bi bi-calculator me-1"></i> Statistics</a>
+    <a href="{% url 'dataapp:visualize' %}" class="btn btn-success"><i class="bi bi-pie-chart me-1"></i> Charts</a>
+    <a href="{% url 'dataapp:ai_train' %}" class="btn btn-dark"><i class="bi bi-cpu me-1"></i> Auto Train</a>
 </div>
 {% endblock %}

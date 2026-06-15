@@ -1,4 +1,5 @@
 from io import StringIO
+import logging
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
@@ -7,6 +8,9 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+
+logger = logging.getLogger(__name__)
 
 
 def safe_json_value(value: Any) -> Any:
@@ -50,12 +54,29 @@ def dataset_overview(df: pd.DataFrame) -> Dict[str, Any]:
 
 
 def clean_dataset_for_display(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+    logger.info(
+        "clean_dataset_for_display entry: shape=%s columns=%s",
+        df.shape,
+        df.columns.tolist(),
+    )
+    if "Monthly_Salary" in df.columns:
+        salary_before = pd.to_numeric(df["Monthly_Salary"], errors="coerce")
+        logger.info(
+            "Monthly_Salary before cleaning: dtype=%s numeric_dtype=%s stats=%s negative_count=%s sentinel_999999_count=%s",
+            df["Monthly_Salary"].dtype,
+            salary_before.dtype,
+            salary_before.describe().to_dict(),
+            int((salary_before < 0).sum()),
+            int((salary_before == 999999).sum()),
+        )
+
     cleaned = df.copy()
     report: Dict[str, Any] = {
         "missing_values": [],
         "duplicates_removed": 0,
         "label_encodings": [],
         "outliers": [],
+        "domain_rules": [],
         "scaling": "Feature scaling is applied inside the ML pipeline with StandardScaler.",
         "summary": [],
     }
@@ -64,6 +85,38 @@ def clean_dataset_for_display(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str,
         cleaned = cleaned.drop_duplicates().reset_index(drop=True)
     report["duplicates_removed"] = duplicate_count
     report["summary"].append(f"Removed {duplicate_count} duplicate rows.")
+
+    for col in cleaned.columns:
+        cleaned[col] = pd.to_numeric(cleaned[col], errors="ignore")
+
+    if "Monthly_Salary" in cleaned.columns:
+        cleaned["Monthly_Salary"] = pd.to_numeric(cleaned["Monthly_Salary"], errors="coerce")
+        invalid_salary_mask = (cleaned["Monthly_Salary"] <= 0) | (cleaned["Monthly_Salary"] == 999999)
+        invalid_salary_count = int(invalid_salary_mask.sum())
+        valid_salary = cleaned.loc[~invalid_salary_mask, "Monthly_Salary"].dropna()
+        replacement = valid_salary.median()
+
+        if invalid_salary_count and not pd.isna(replacement):
+            cleaned.loc[invalid_salary_mask, "Monthly_Salary"] = replacement
+            report["domain_rules"].append(
+                {
+                    "column": "Monthly_Salary",
+                    "rule": "Salary must be positive and must not use the 999999 sentinel value",
+                    "fixed_values": invalid_salary_count,
+                    "replacement": safe_json_value(replacement),
+                }
+            )
+            logger.info(
+                "Monthly_Salary domain rule applied: fixed_values=%s replacement=%s",
+                invalid_salary_count,
+                replacement,
+            )
+        else:
+            logger.info(
+                "Monthly_Salary domain rule skipped: invalid_count=%s replacement=%s",
+                invalid_salary_count,
+                replacement,
+            )
 
     groups = column_groups(cleaned)
     for col in groups["numeric"]:
@@ -91,6 +144,13 @@ def clean_dataset_for_display(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str,
         if count:
             cleaned[col] = cleaned[col].clip(lower, upper)
             report["outliers"].append({"column": col, "capped": count, "lower": round(float(lower), 6), "upper": round(float(upper), 6)})
+            if col == "Monthly_Salary":
+                logger.info(
+                    "Monthly_Salary IQR capping executed: capped=%s lower=%s upper=%s",
+                    count,
+                    lower,
+                    upper,
+                )
     for col in groups["categorical"]:
         unique_count = cleaned[col].nunique(dropna=True)
         if 1 < unique_count <= 50:
@@ -99,8 +159,19 @@ def clean_dataset_for_display(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str,
             cleaned[col] = cleaned[col].map(lambda v: mapping.get(str(v), -1))
             report["label_encodings"].append({"column": col, "mapping": mapping})
     report["summary"].append("No missing values required filling." if not report["missing_values"] else f"Handled missing values in {len(report['missing_values'])} columns.")
+    report["summary"].append(f"Applied {len(report['domain_rules'])} domain-specific cleaning rules.")
     report["summary"].append(f"Encoded {len(report['label_encodings'])} categorical columns.")
     report["summary"].append(f"Capped outliers in {len(report['outliers'])} numeric columns.")
+    if "Monthly_Salary" in cleaned.columns:
+        salary_after = pd.to_numeric(cleaned["Monthly_Salary"], errors="coerce")
+        logger.info(
+            "Monthly_Salary after cleaning: dtype=%s stats=%s negative_count=%s sentinel_999999_count=%s",
+            cleaned["Monthly_Salary"].dtype,
+            salary_after.describe().to_dict(),
+            int((salary_after < 0).sum()),
+            int((salary_after == 999999).sum()),
+        )
+    logger.info("clean_dataset_for_display exit: shape=%s", cleaned.shape)
     return cleaned, report
 
 

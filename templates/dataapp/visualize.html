@@ -1,15 +1,20 @@
 {% extends 'dataapp/base.html' %}
 {% block title %}Smart Visualizations{% endblock %}
 {% block content %}
-<div class="panel mb-4">
-    <div class="panel-header">
-        <h1 class="h4 mb-1">Smart Visualizations</h1>
-        <div class="text-secondary">{{ file_name }}</div>
+<div class="page-header">
+    <div>
+        <div class="eyebrow">Visual Analytics</div>
+        <h1 class="page-title">Smart Visualizations</h1>
+        <div class="page-subtitle">{{ file_name }}</div>
     </div>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-header"><div><h2 class="panel-title">Chart Controls</h2><div class="panel-kicker">Select a target column for feature-oriented charts</div></div></div>
     <div class="panel-body">
-        <form method="get" class="row g-2 align-items-end">
-            <div class="col-md-6">
-                <label class="form-label">Target column for feature graphs</label>
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-7">
+                <label class="form-label">Target column</label>
                 <select name="target" class="form-select">
                     <option value="">No target selected</option>
                     {% for col in columns %}
@@ -17,7 +22,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3"><button class="btn btn-success w-100">Generate</button></div>
+            <div class="col-md-3"><button class="btn btn-success w-100"><i class="bi bi-arrow-repeat me-1"></i> Generate</button></div>
         </form>
     </div>
 </div>
@@ -25,12 +30,41 @@
 <div class="row g-4">
     {% for chart in charts %}
         <div class="col-12">
-            <div class="panel">
-                <div class="panel-header d-flex justify-content-between align-items-center">
-                    <h2 class="h5 mb-0">{{ chart.title }}</h2>
-                    <span class="badge text-bg-light border">{{ chart.kind }}</span>
+            <div class="panel chart-card" data-chart-card>
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">{{ chart.title }}</h2>
+                        <div class="panel-kicker">{{ chart.kind }}</div>
+                    </div>
+                    <div class="chart-actions">
+                        <button type="button" class="btn btn-sm btn-outline-success" data-explain-with-gemini data-chart-id="{{ forloop.counter }}"><i class="bi bi-gem me-1"></i> Explain</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-chart-export><i class="bi bi-download"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-chart-fullscreen><i class="bi bi-arrows-fullscreen"></i></button>
+                    </div>
                 </div>
-                <div class="panel-body">{{ chart.html|safe }}</div>
+                <div class="panel-body">
+                    <div class="chart-frame">{{ chart.html|safe }}</div>
+                    <input type="hidden" id="chart-payload-{{ forloop.counter }}" value='{{ chart.explain_payload|default:"{}"|escapejs }}'>
+                    <div class="insight-grid mt-3">
+                        <section class="insight-box">
+                            <h3><i class="bi bi-eye text-success me-1"></i> Observations</h3>
+                            <ul>
+                                {% for obs in chart.observations %}<li>{{ obs }}</li>{% empty %}<li>No observations computed for this chart.</li>{% endfor %}
+                            </ul>
+                        </section>
+                        <section class="insight-box">
+                            <h3><i class="bi bi-lightbulb text-warning me-1"></i> Insights</h3>
+                            <ul>
+                                {% for ins in chart.key_insights %}<li>{{ ins }}</li>{% empty %}<li>No key insights computed for this chart.</li>{% endfor %}
+                            </ul>
+                        </section>
+                        <section class="insight-box">
+                            <h3><i class="bi bi-flag text-success me-1"></i> Recommendations</h3>
+                            <div class="text-secondary small" style="white-space: pre-wrap;">{{ chart.recommendation }}</div>
+                        </section>
+                    </div>
+                    <div class="mt-3" id="gemini-explain-{{ forloop.counter }}"></div>
+                </div>
             </div>
         </div>
     {% empty %}

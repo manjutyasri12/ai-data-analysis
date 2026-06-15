@@ -1,0 +1,157 @@
+{% extends 'dataapp/base.html' %}
+{% block title %}Enhanced AI Report{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="eyebrow">Gemini Report Studio</div>
+        <h1 class="page-title">Enhanced AI Report</h1>
+        <div class="page-subtitle">Generate executive summaries, business insights, and research-ready analysis using the current dataset context.</div>
+    </div>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-header"><div><h2 class="panel-title">Report Configuration</h2><div class="panel-kicker">Select a target column to enrich the report context</div></div></div>
+    <div class="panel-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row g-3 align-items-end">
+                <div class="col-md-7">
+                    <label class="form-label" for="{{ form.target_column.id_for_label }}">Target column</label>
+                    {{ form.target_column }}
+                    {% if form.target_column.errors %}<div class="text-danger small mt-1">{{ form.target_column.errors }}</div>{% endif %}
+                </div>
+                <div class="col-md-3"><button type="submit" class="btn btn-success w-100"><i class="bi bi-stars me-1"></i> Generate Context</button></div>
+            </div>
+        </form>
+        {% if error %}<div class="alert alert-danger mt-3">{{ error }}</div>{% endif %}
+    </div>
+</div>
+
+{% if understanding %}
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3"><div class="metric-card"><div class="metric-icon"><i class="bi bi-diagram-3"></i></div><div><div class="metric-label">Dataset Type</div><div class="value">{{ understanding.dataset_type }}</div></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="metric-card"><div class="metric-icon"><i class="bi bi-shield-check"></i></div><div><div class="metric-label">Quality Score</div><div class="value">{{ understanding.quality_score }}</div></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="metric-card"><div class="metric-icon"><i class="bi bi-cpu"></i></div><div><div class="metric-label">Best Model</div><div class="value">{{ understanding.recommended_model }}</div></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="metric-card"><div class="metric-icon"><i class="bi bi-award"></i></div><div><div class="metric-label">Best Accuracy</div><div class="value">{{ best_accuracy|default:"N/A" }}</div></div></div></div>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-header"><div><h2 class="panel-title">Analysis Brief</h2><div class="panel-kicker">Important features, correlations, and model signals</div></div></div>
+    <div class="panel-body">
+        <div class="insight-grid">
+            <section class="insight-box">
+                <h3>Important Features</h3>
+                <div class="d-flex flex-wrap gap-2">{% for feature in understanding.important_features %}<span class="badge text-bg-light border">{{ feature }}</span>{% endfor %}</div>
+            </section>
+            <section class="insight-box">
+                <h3>Recommended Approach</h3>
+                <div class="text-secondary">{{ understanding.best_ml_approach }}</div>
+            </section>
+            <section class="insight-box">
+                <h3>Action Recommendation</h3>
+                <div class="text-secondary">{{ understanding.why_model_selected }}</div>
+            </section>
+        </div>
+        {% if understanding.correlations %}
+        <div class="table-responsive mt-3">
+            <table class="table table-sm">
+                <thead><tr><th>Feature</th><th>Correlation</th></tr></thead>
+                <tbody>{% for corr in understanding.correlations %}<tr><td>{{ corr.feature }}</td><td>{{ corr.correlation }}</td></tr>{% endfor %}</tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if leaderboard %}
+<div class="panel mb-4">
+    <div class="panel-header"><div><h2 class="panel-title">Model Leaderboard</h2><div class="panel-kicker">Top model comparison results</div></div></div>
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead><tr><th>Rank</th><th>Model</th><th>Accuracy / R2</th><th>Training Time</th><th>Status</th></tr></thead>
+                <tbody>
+                {% for model in leaderboard|slice:":10" %}
+                    <tr>
+                        <td><span class="rank-badge">{{ forloop.counter }}</span></td>
+                        <td><strong>{{ model.model_name }}</strong></td>
+                        <td>{% if model.accuracy %}{{ model.accuracy|floatformat:4 }}{% elif model.r2_score %}{{ model.r2_score|floatformat:4 }}{% else %}N/A{% endif %}</td>
+                        <td>{{ model.training_time|floatformat:2 }}</td>
+                        <td>{% if model.status == 'failed' %}<span class="badge text-bg-danger">Failed</span>{% else %}<span class="badge text-bg-success">Success</span>{% endif %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="panel">
+    <div class="panel-header"><div><h2 class="panel-title">Gemini AI Analysis</h2><div class="panel-kicker">Generate polished report artifacts</div></div></div>
+    <div class="panel-body">
+        <div class="row g-3">
+            <div class="col-md-4"><button class="ai-action" onclick="generateReport('executive-summary')"><i class="bi bi-file-text"></i> Executive Summary</button></div>
+            <div class="col-md-4"><button class="ai-action" onclick="generateReport('business-insights')"><i class="bi bi-briefcase"></i> Business Insights</button></div>
+            <div class="col-md-4"><button class="ai-action" onclick="generateReport('research-paper')"><i class="bi bi-journal-text"></i> Research Paper</button></div>
+        </div>
+        <div id="report-area" class="insight-box mt-3" style="display:none;">
+            <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                <h3 id="report-title" class="mb-0">Report</h3>
+                <button onclick="closeReport()" class="btn btn-sm btn-outline-secondary" type="button"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div id="report-content" class="text-secondary" style="max-height: 500px; overflow-y: auto; white-space: pre-wrap;">Loading...</div>
+            <div class="d-flex gap-2 flex-wrap mt-3">
+                <button onclick="copyReport()" class="btn btn-outline-success" type="button"><i class="bi bi-copy me-1"></i> Copy</button>
+                <button onclick="downloadReport()" class="btn btn-outline-secondary" type="button"><i class="bi bi-download me-1"></i> Download</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+let currentReport = "";
+const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+const reportEndpoints = {
+    "executive-summary": ["{% url 'dataapp:ai_exec_summary' %}", "Executive Summary"],
+    "business-insights": ["{% url 'dataapp:ai_business_insights' %}", "Business Insights"],
+    "research-paper": ["{% url 'dataapp:ai_research_paper' %}", "Research Paper"]
+};
+
+function generateReport(type) {
+    const [url, title] = reportEndpoints[type];
+    document.getElementById("report-area").style.display = "block";
+    document.getElementById("report-title").textContent = title;
+    document.getElementById("report-content").textContent = "Generating...";
+    fetch(url, { method: "POST", headers: { "X-CSRFToken": csrfToken } })
+        .then(response => response.json())
+        .then(data => {
+            currentReport = data.answer || data.response || "No content generated.";
+            document.getElementById("report-content").textContent = currentReport;
+        })
+        .catch(error => {
+            currentReport = error.message;
+            document.getElementById("report-content").textContent = error.message;
+        });
+}
+
+function closeReport() {
+    document.getElementById("report-area").style.display = "none";
+}
+
+function copyReport() {
+    navigator.clipboard.writeText(currentReport || document.getElementById("report-content").textContent);
+}
+
+function downloadReport() {
+    const blob = new Blob([currentReport || document.getElementById("report-content").textContent], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "gemini-report.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}
