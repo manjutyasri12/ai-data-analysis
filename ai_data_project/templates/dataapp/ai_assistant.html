@@ -1,0 +1,231 @@
+{% extends "dataapp/base.html" %}
+{% load static %}
+{% block title %}Gemini AI Assistant{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'dataapp/css/ai_assistant.css' %}">{% endblock %}
+
+{% block content %}
+<section class="assistant-shell" data-ai-chat-url="{% url 'dataapp:ai_chat_memory' %}" data-conv-url="{% url 'dataapp:ai_conv_history' %}">
+    <div class="panel assistant-hero">
+        <div class="assistant-brand">
+            <div class="gemini-logo"><i class="bi bi-gem"></i></div>
+            <div>
+                <h1 class="assistant-title">Gemini AI Assistant(chatbot1)</h1>
+                <div class="assistant-badge"><i class="bi bi-google"></i> Powered by Google Gemini</div>
+            </div>
+        </div>
+        <div class="assistant-status-grid">
+            <div class="assistant-status-card"><span>Dataset Loaded</span><strong>{% if has_dataset %}Yes{% else %}No{% endif %}</strong></div>
+            <div class="assistant-status-card"><span>Best Model</span><strong>{{ request.session.last_model_name|default:"Pending" }}</strong></div>
+            <div class="assistant-status-card"><span>Rows</span><strong>Session</strong></div>
+            <div class="assistant-status-card"><span>AI Status</span><strong>Ready</strong></div>
+        </div>
+    </div>
+
+    <div class="assistant-layout">
+        <aside class="panel quick-panel">
+            <div class="panel-header"><div><h2 class="panel-title">AI Actions</h2><div class="panel-kicker">Common analysis workflows</div></div></div>
+            <div class="panel-body">
+                {% if has_dataset %}
+                    <div class="ai-action-grid mb-2">
+                        <button type="button" class="ai-action" data-report-action="executive-summary"><i class="bi bi-file-text"></i> Executive Summary</button>
+                        <button type="button" class="ai-action" data-report-action="business-insights"><i class="bi bi-briefcase"></i> Business Insights</button>
+                        <button type="button" class="ai-action" data-report-action="research-paper"><i class="bi bi-journal-text"></i> Research Paper</button>
+                        <button type="button" class="ai-action" data-report-action="full-analysis"><i class="bi bi-search"></i> Full Analysis</button>
+                        <button type="button" class="ai-action" data-report-action="model-comparison"><i class="bi bi-bar-chart"></i> Model Comparison</button>
+                        <button type="button" class="ai-action" data-report-action="accuracy-tips"><i class="bi bi-arrow-up-right"></i> Accuracy Tips</button>
+                    </div>
+                {% endif %}
+                <button type="button" class="quick-question" data-prompt="What insights can you find in this dataset?"><i class="bi bi-lightbulb"></i> Dataset Insights</button>
+                <button type="button" class="quick-question" data-prompt="What data quality issues exist?"><i class="bi bi-shield-check"></i> Data Quality</button>
+                <button type="button" class="quick-question" data-prompt="Which features are most important?"><i class="bi bi-list-stars"></i> Feature Importance</button>
+                <button type="button" class="quick-question" data-prompt="What is the best ML model for this?"><i class="bi bi-cpu"></i> Best Model</button>
+                <button type="button" class="quick-question" data-prompt="Explain the model predictions"><i class="bi bi-magic"></i> Predictions</button>
+            </div>
+        </aside>
+
+        <main class="panel chat-panel">
+            <div class="chat-topbar">
+                <div>
+                    <h2 class="chat-title">Dataset-Aware Chat</h2>
+                    <div class="chat-subtitle">{{ file_name|default:"Upload a dataset to unlock full context" }}</div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" id="ai-chat-history-toggle" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history"></i></button>
+                    <button type="button" id="ai-chat-clear" class="btn btn-sm btn-outline-secondary"><i class="bi bi-trash3"></i></button>
+                </div>
+            </div>
+
+            <div id="ai-chat-log" class="chat-log" aria-live="polite">
+                <div class="chat-message chat-message-ai">
+                    <div class="chat-avatar"><i class="bi bi-gem"></i></div>
+                    <div class="chat-bubble">
+                        <strong>Welcome to Gemini AI Assistant.</strong><br>
+                        Ask about dataset quality, statistics, correlations, model performance, predictions, or business recommendations.
+                    </div>
+                </div>
+            </div>
+
+            <div id="ai-chat-history" class="mx-3 my-2 insight-box" style="display:none; max-height: 180px; overflow:auto;">
+                <h3>Recent Conversation</h3>
+                <div class="text-secondary small">Loading history...</div>
+            </div>
+
+            <div class="chat-composer">
+                <form id="ai-chat-form" class="chat-form">
+                    {% csrf_token %}
+                    <textarea id="ai-chat-input" class="chat-input" rows="3" placeholder="Ask Gemini about your dataset, models, statistics, or predictions." autocomplete="off"></textarea>
+                    <div class="chat-actions">
+                        <div id="ai-chat-status" class="chat-status">Ready</div>
+                        <button type="submit" class="btn btn-success ask-button"><i class="bi bi-send me-1"></i> Ask Gemini</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</section>
+
+<div id="report-modal" class="report-modal">
+    <div class="report-dialog">
+        <div class="panel-header">
+            <div><h2 id="report-title" class="panel-title">Report</h2><div class="panel-kicker">Generated by Gemini</div></div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-report-close><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div id="report-content" class="report-content">Loading...</div>
+        <div class="panel-body d-flex gap-2 flex-wrap">
+            <button type="button" class="btn btn-outline-success" data-copy-target="#report-content"><i class="bi bi-copy me-1"></i> Copy Response</button>
+            <button type="button" class="btn btn-outline-secondary" data-report-download><i class="bi bi-download me-1"></i> Download</button>
+            <button type="button" class="btn btn-dark ms-auto" data-report-close>Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const shell = document.querySelector(".assistant-shell");
+    const form = document.getElementById("ai-chat-form");
+    const input = document.getElementById("ai-chat-input");
+    const log = document.getElementById("ai-chat-log");
+    const status = document.getElementById("ai-chat-status");
+    const modal = document.getElementById("report-modal");
+    const reportTitle = document.getElementById("report-title");
+    const reportContent = document.getElementById("report-content");
+    const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    const endpoints = {
+        "executive-summary": ["{% url 'dataapp:ai_exec_summary' %}", "Executive Summary"],
+        "business-insights": ["{% url 'dataapp:ai_business_insights' %}", "Business Insights"],
+        "research-paper": ["{% url 'dataapp:ai_research_paper' %}", "Research Paper"],
+        "full-analysis": ["{% url 'dataapp:ai_analyze_full' %}", "Full Dataset Analysis"],
+        "model-comparison": ["{% url 'dataapp:ai_explain_models' %}", "Model Comparison"],
+        "accuracy-tips": ["{% url 'dataapp:ai_suggest_accuracy' %}", "Accuracy Improvement Tips"]
+    };
+
+    function escapeHtml(value) {
+        return String(value || "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[ch]));
+    }
+
+    function markdown(value) {
+        return escapeHtml(value)
+            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+            .replace(/`([^`]+)`/g, "<code>$1</code>")
+            .replace(/\n/g, "<br>");
+    }
+
+    function appendMessage(role, message, loading) {
+        const row = document.createElement("div");
+        row.className = "chat-message chat-message-" + role;
+        row.innerHTML = `
+            <div class="chat-avatar"><i class="bi ${role === "user" ? "bi-person" : "bi-gem"}"></i></div>
+            <div class="chat-bubble">${loading ? '<span class="loading-dots"><span></span><span></span><span></span></span>' : markdown(message)}</div>
+        `;
+        log.appendChild(row);
+        log.scrollTop = log.scrollHeight;
+        return row;
+    }
+
+    async function postJson(url, body) {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+            body: body ? JSON.stringify(body) : undefined
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.success === false) throw new Error(data.error || data.response || "Gemini request failed.");
+        return data;
+    }
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const question = input.value.trim();
+        if (!question) return;
+        appendMessage("user", question);
+        input.value = "";
+        input.disabled = true;
+        status.textContent = "Gemini is thinking...";
+        const loading = appendMessage("ai", "", true);
+        try {
+            const data = await postJson(shell.dataset.aiChatUrl, { question });
+            loading.remove();
+            appendMessage("ai", data.answer || data.response || "No response received.");
+            status.textContent = "Gemini answered successfully.";
+        } catch (error) {
+            loading.remove();
+            appendMessage("ai", error.message);
+            status.textContent = error.message;
+        } finally {
+            input.disabled = false;
+            input.focus();
+        }
+    });
+
+    document.querySelectorAll(".quick-question").forEach(button => {
+        button.addEventListener("click", () => {
+            input.value = button.dataset.prompt;
+            input.focus();
+        });
+    });
+
+    document.querySelectorAll("[data-report-action]").forEach(button => {
+        button.addEventListener("click", async () => {
+            const [url, title] = endpoints[button.dataset.reportAction];
+            reportTitle.textContent = title;
+            reportContent.textContent = "Generating...";
+            modal.style.display = "block";
+            try {
+                const data = await postJson(url);
+                reportContent.textContent = data.answer || data.response || "No content generated.";
+            } catch (error) {
+                reportContent.textContent = error.message;
+            }
+        });
+    });
+
+    document.getElementById("ai-chat-clear").addEventListener("click", async () => {
+        log.innerHTML = "";
+        appendMessage("ai", "Chat cleared. Ready for a fresh conversation.");
+        status.textContent = "Ready";
+    });
+
+    document.getElementById("ai-chat-history-toggle").addEventListener("click", async () => {
+        const panel = document.getElementById("ai-chat-history");
+        panel.style.display = panel.style.display === "none" ? "block" : "none";
+        if (panel.style.display === "block") {
+            const response = await fetch(shell.dataset.convUrl + "?limit=8");
+            const data = await response.json().catch(() => ({}));
+            const rows = data.history || [];
+            panel.innerHTML = "<h3>Recent Conversation</h3>" + (rows.length ? rows.map(item => `<div class="small mb-2"><strong>${escapeHtml(item.role)}:</strong> ${escapeHtml((item.message || "").slice(0, 120))}</div>`).join("") : '<div class="text-secondary small">No conversation history yet.</div>');
+        }
+    });
+
+    document.querySelectorAll("[data-report-close]").forEach(button => button.addEventListener("click", () => modal.style.display = "none"));
+    document.querySelector("[data-report-download]").addEventListener("click", () => {
+        const blob = new Blob([reportContent.innerText], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "gemini-report.txt";
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+})();
+</script>
+{% endblock %}
