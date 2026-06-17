@@ -1,0 +1,61 @@
+{% if leaderboard %}
+<div class="card mt-4">
+  <div class="card-header bg-light">
+    <h5 class="mb-0">Model Comparison</h5>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Accuracy / Score</th>
+            <th>Training Time (sec)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in leaderboard %}
+            {% if row.model == best_model_name %}
+              <tr class="table-success">
+            {% else %}
+              <tr>
+            {% endif %}
+              <td>{{ row.model }}</td>
+              <td>
+                {% if row.score is not none %}
+                  {{ row.score }}
+                {% else %}
+                  N/A
+                {% endif %}
+                {% if row.error %}
+                  <div class="text-danger small mt-1" style="max-width:420px;white-space:normal;">{{ row.error }}</div>
+                {% endif %}
+              </td>
+              <td>
+                {% if row.train_time_sec is not none %}
+                  {{ row.train_time_sec }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {% if row.status == 'tested' %}
+                  <span class="badge bg-primary">Tested</span>
+                {% elif row.status == 'failed' %}
+                  <span class="badge bg-danger">Failed</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ row.status }}</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-warning mt-4">No trained models found for this dataset/target.</div>
+{% endif %}
+

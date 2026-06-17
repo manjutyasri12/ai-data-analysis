@@ -1,0 +1,52 @@
+{% extends 'dataapp/base.html' %}
+{% block title %}Statistics{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="eyebrow">Statistical Profile</div>
+        <h1 class="page-title">Advanced Statistics</h1>
+        <div class="page-subtitle">{{ file_name }}</div>
+    </div>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-header"><div><h2 class="panel-title">Dataset Summary</h2><div class="panel-kicker">Numeric distribution overview</div></div></div>
+    <div class="panel-body"><div class="table-responsive">{{ describe_table|safe }}</div></div>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-header"><div><h2 class="panel-title">Column Metrics</h2><div class="panel-kicker">Mean, median, spread, and shape indicators</div></div></div>
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Column</th><th>Mean</th><th>Median</th><th>Mode</th><th>Variance</th><th>Std Dev</th>
+                        <th>Min</th><th>Q1</th><th>Q3</th><th>Max</th><th>Skewness</th><th>Kurtosis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for col, s in stats_rows.items %}
+                    <tr>
+                        <td><strong>{{ col }}</strong></td>
+                        <td>{{ s.mean|default:"" }}</td><td>{{ s.median|default:"" }}</td><td>{{ s.mode|default:"" }}</td>
+                        <td>{{ s.variance|default:"" }}</td><td>{{ s.std|default:"" }}</td><td>{{ s.min|default:"" }}</td>
+                        <td>{{ s.q1|default:"" }}</td><td>{{ s.q3|default:"" }}</td><td>{{ s.max|default:"" }}</td>
+                        <td>{{ s.skewness|default:"" }}</td><td>{{ s.kurtosis|default:"" }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-header"><div><h2 class="panel-title">Correlation Matrix</h2><div class="panel-kicker">Relationships across numeric columns</div></div></div>
+    <div class="panel-body">
+        <div class="table-responsive">
+            {% if correlation_table %}{{ correlation_table|safe }}{% else %}<div class="alert alert-info mb-0">At least two numeric columns are required.</div>{% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

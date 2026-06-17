@@ -1,0 +1,12 @@
+venv/
+env/
+__pycache__/
+*.pyc
+db.sqlite3
+media/
+backup-current-version-untracked/
+backup_preserved_files_before_restore/
+remote_clone_for_restore/
+*.csv
+.env
+.vscode/

@@ -1,0 +1,41 @@
+{% extends 'dataapp/base.html' %}
+{% block title %}Upload CSV{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="eyebrow">AI Analytics Workspace</div>
+        <h1 class="page-title">Upload Dataset</h1>
+        <div class="page-subtitle">Profile, clean, visualize, train, and explain CSV datasets from a single enterprise dashboard.</div>
+    </div>
+</div>
+
+<div class="row g-4 align-items-stretch">
+    <div class="col-lg-7">
+        <div class="panel h-100">
+            <div class="panel-header">
+                <div><h2 class="panel-title">CSV Intake</h2><div class="panel-kicker">Upload a CSV file to start the analysis pipeline</div></div>
+            </div>
+            <div class="panel-body">
+                <form method="post" enctype="multipart/form-data" action="{% url 'dataapp:upload' %}" onsubmit="document.getElementById('upload-progress').classList.remove('d-none')">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="id_csv_file">CSV file</label>
+                        {{ form.csv_file }}
+                    </div>
+                    <button class="btn btn-success px-4" type="submit"><i class="bi bi-cloud-arrow-up me-1"></i> Upload and Analyze</button>
+                    <div id="upload-progress" class="d-none mt-4"><div class="loader-bar"></div></div>
+                </form>
+                {% if error %}<div class="alert alert-danger mt-3">{{ error }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="row g-3">
+            <div class="col-sm-6"><div class="metric-card"><div class="metric-icon"><i class="bi bi-cpu"></i></div><div><div class="value">AutoML</div><div class="metric-note">Train and rank supported models.</div></div></div></div>
+            <div class="col-sm-6"><div class="metric-card"><div class="metric-icon"><i class="bi bi-pie-chart"></i></div><div><div class="value">Plotly</div><div class="metric-note">Interactive visual analytics.</div></div></div></div>
+            <div class="col-sm-6"><div class="metric-card"><div class="metric-icon"><i class="bi bi-check2-circle"></i></div><div><div class="value">Clean</div><div class="metric-note">Impute, encode, and cap values.</div></div></div></div>
+            <div class="col-sm-6"><div class="metric-card"><div class="metric-icon"><i class="bi bi-gem"></i></div><div><div class="value">Gemini</div><div class="metric-note">Ask dataset-aware questions.</div></div></div></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

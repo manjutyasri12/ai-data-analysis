@@ -1,0 +1,81 @@
+{% extends "dataapp/base.html" %}
+{% load static %}
+
+{% block title %}Gemini AI Assistant{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'dataapp/css/ai_assistant.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="assistant-shell" data-ai-chat-url="{% url 'dataapp:ai_chat' %}">
+    <div class="assistant-header panel">
+        <div class="assistant-brand">
+            <span class="gemini-logo" aria-hidden="true">G</span>
+            <div>
+                <h1>Gemini AI Assistant</h1>
+                <span class="gemini-badge">Powered by Google Gemini</span>
+            </div>
+        </div>
+        <div class="assistant-dataset">
+            {% if has_dataset %}
+                Dataset: {{ file_name|default:"uploaded dataset" }}
+            {% else %}
+                Dataset not loaded
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="assistant-grid">
+        <aside class="quick-panel panel">
+            <div class="panel-header">
+                <h2>Quick Questions</h2>
+            </div>
+            <div class="panel-body">
+                <button type="button" class="quick-question" data-prompt="Explain Dataset">Explain Dataset</button>
+                <button type="button" class="quick-question" data-prompt="Explain Statistics">Explain Statistics</button>
+                <button type="button" class="quick-question" data-prompt="Explain Heatmap">Explain Heatmap</button>
+                <button type="button" class="quick-question" data-prompt="Recommend Best Model">Recommend Best Model</button>
+                <button type="button" class="quick-question" data-prompt="Compare Models">Compare Models</button>
+                <button type="button" class="quick-question" data-prompt="Improve Accuracy">Improve Accuracy</button>
+            </div>
+        </aside>
+
+        <main class="chat-panel panel">
+            <div class="chat-topbar">
+                <div>
+                    <h2>Dataset-aware chat</h2>
+                    <p>Ask about datasets, statistics, charts, heatmaps, preprocessing, models, predictions, and accuracy.</p>
+                </div>
+                <button type="button" id="ai-chat-clear" class="clear-chat">Clear chat</button>
+            </div>
+
+            <div id="ai-chat-log" class="chat-log" aria-live="polite">
+                <div class="chat-message chat-message-ai">
+                    <div class="chat-bubble">
+                        Upload a dataset, then ask Gemini to explain your data, charts, model results, or predictions.
+                    </div>
+                </div>
+            </div>
+
+            <div id="ai-chat-status" class="chat-status">Ready</div>
+
+            <form id="ai-chat-form" class="chat-form">
+                {% csrf_token %}
+                <textarea
+                    id="ai-chat-input"
+                    class="chat-input"
+                    rows="2"
+                    placeholder="Ask Gemini about your uploaded dataset..."
+                    autocomplete="off"
+                ></textarea>
+                <button type="submit" class="ask-button">Ask AI</button>
+            </form>
+        </main>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'dataapp/js/ai_assistant.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'dataapp/base.html' %}
+{% block title %}AI Understand{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="eyebrow">AI Analysis</div>
+        <h1 class="page-title">AI Understand</h1>
+        <div class="page-subtitle">Generate a structured dataset summary, quality score, feature ranking, and model recommendation.</div>
+    </div>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-header"><div><h2 class="panel-title">Analysis Setup</h2><div class="panel-kicker">Select the target column for supervised interpretation</div></div></div>
+    <div class="panel-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row g-3 align-items-end">
+                <div class="col-md-7">
+                    <label class="form-label">Target column</label>
+                    {{ form.target_column }}
+                </div>
+                <div class="col-md-3"><button class="btn btn-primary w-100"><i class="bi bi-stars me-1"></i> Analyze</button></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if understanding %}
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3"><div class="metric-card"><div class="metric-icon"><i class="bi bi-diagram-3"></i></div><div><div class="metric-label">Dataset Type</div><div class="value">{{ understanding.dataset_type }}</div></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="metric-card"><div class="metric-icon"><i class="bi bi-table"></i></div><div><div class="metric-label">Rows</div><div class="value">{{ understanding.rows }}</div></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="metric-card"><div class="metric-icon"><i class="bi bi-columns-gap"></i></div><div><div class="metric-label">Columns</div><div class="value">{{ understanding.columns }}</div></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="metric-card"><div class="metric-icon"><i class="bi bi-shield-check"></i></div><div><div class="metric-label">Quality Score</div><div class="value">{{ understanding.quality_score }}</div></div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="panel h-100">
+            <div class="panel-header"><div><h2 class="panel-title">Recommended Models</h2><div class="panel-kicker">Best approach and reasoning</div></div></div>
+            <div class="panel-body">
+                <div class="insight-box mb-3"><h3>Best ML Approach</h3><div class="text-secondary">{{ understanding.best_ml_approach }}</div></div>
+                <div class="insight-box mb-3"><h3>Recommended Model</h3><div class="fs-5 fw-bold text-success">{{ understanding.recommended_model }}</div><div class="text-secondary mt-1">{{ understanding.why_model_selected }}</div></div>
+                {% if understanding.imbalance %}
+                    <div class="insight-box"><h3>Class Balance</h3><div class="text-secondary">Largest class {{ understanding.imbalance.largest_class }} at {{ understanding.imbalance.largest_percent }}% across {{ understanding.imbalance.class_count }} classes.</div></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="panel h-100">
+            <div class="panel-header"><div><h2 class="panel-title">Feature Importance</h2><div class="panel-kicker">Top signals identified from dataset structure</div></div></div>
+            <div class="panel-body">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% for feature in understanding.important_features %}
+                        <span class="badge text-bg-light border">{{ feature }}</span>
+                    {% endfor %}
+                </div>
+                {% if understanding.correlations %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead><tr><th>Feature</th><th>Correlation</th></tr></thead>
+                            <tbody>{% for item in understanding.correlations %}<tr><td>{{ item.feature }}</td><td>{{ item.correlation }}</td></tr>{% endfor %}</tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

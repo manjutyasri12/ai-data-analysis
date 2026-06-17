@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Data Analysis{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{% static 'dataapp/css/dashboard.css' %}" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark"><i class="bi bi-bar-chart-line-fill"></i></div>
+            <div>
+                <div class="brand-title">AI Data Analysis</div>
+                <div class="brand-subtitle">Enterprise Analytics</div>
+            </div>
+        </div>
+
+        {% with active=request.resolver_match.url_name %}
+        <nav class="side-nav" aria-label="Primary navigation">
+            <a class="side-link {% if active == 'home' or active == 'upload' %}active{% endif %}" href="{% url 'dataapp:home' %}">
+                <i class="bi bi-cloud-arrow-up"></i><span>Upload</span>
+            </a>
+            {% if request.session.data %}
+                <a class="side-link {% if active == 'analyze' %}active{% endif %}" href="{% url 'dataapp:analyze' %}">
+                    <i class="bi bi-calculator"></i><span>Statistics</span>
+                </a>
+                <a class="side-link {% if active == 'visualize' %}active{% endif %}" href="{% url 'dataapp:visualize' %}">
+                    <i class="bi bi-pie-chart"></i><span>Visualizations</span>
+                </a>
+                <a class="side-link {% if active == 'ai_understand' %}active{% endif %}" href="{% url 'dataapp:ai_understand' %}">
+                    <i class="bi bi-stars"></i><span>AI Understand</span>
+                </a>
+                <a class="side-link {% if active == 'ai_assistant' %}active{% endif %}" href="{% url 'dataapp:ai_assistant' %}">
+                    <i class="bi bi-gem"></i><span>Gemini Assistant</span>
+                </a>
+                <a class="side-link {% if active == 'ai_train' or active == 'ml_section' or active == 'ml_train_model' %}active{% endif %}" href="{% url 'dataapp:ai_train' %}">
+                    <i class="bi bi-cpu"></i><span>Auto Train</span>
+                </a>
+                <a class="side-link {% if active == 'predict' or active == 'ai_predict_uploaded' %}active{% endif %}" href="{% url 'dataapp:predict' %}">
+                    <i class="bi bi-magic"></i><span>Predict</span>
+                </a>
+                <a class="side-link {% if active == 'ai_report' or active == 'ai_report_enhanced' %}active{% endif %}" href="{% url 'dataapp:ai_report' %}">
+                    <i class="bi bi-file-earmark-text"></i><span>Report</span>
+                </a>
+                <a class="side-link" href="{% url 'dataapp:clear' %}">
+                    <i class="bi bi-trash3"></i><span>Clear Dataset</span>
+                </a>
+            {% endif %}
+        </nav>
+        {% endwith %}
+    </aside>
+
+    <main class="content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="icon-btn mobile-menu" type="button" data-sidebar-toggle aria-label="Open navigation">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="dataset-pill">
+                    <span class="status-dot"></span>
+                    <span>Dataset</span>
+                    <strong>{{ request.session.file_name|default:"Not loaded" }}</strong>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <label class="app-search">
+                    <i class="bi bi-search"></i>
+                    <input type="search" placeholder="Search workspace" aria-label="Search workspace">
+                </label>
+                <button class="notification-btn" type="button" aria-label="Notifications">
+                    <i class="bi bi-bell"></i>
+                </button>
+                <div class="profile-pill">
+                    <i class="bi bi-person-circle"></i>
+                    <span>Analyst</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-wrap fade-in">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+<script src="{% static 'dataapp/js/visualization_insights.js' %}"></script>
+<script src="{% static 'dataapp/js/dashboard.js' %}"></script>
+</body>
+</html>

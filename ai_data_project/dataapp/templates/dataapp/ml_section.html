@@ -1,0 +1,296 @@
+{% extends 'dataapp/base.html' %}
+
+{% block title %}ML Models - Comprehensive Machine Learning{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-12">
+      
+      <!-- Header -->
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h2 class="mb-0">🤖 Comprehensive ML Models</h2>
+          <small>Train, Compare, and Deploy All Available ML Models</small>
+        </div>
+        <div class="card-body">
+          <p><strong>Available Models:</strong></p>
+          <div class="row">
+            <div class="col-md-6">
+              <h5>Regression Models (6)</h5>
+              <ul class="list-unstyled">
+                {% for model in regression_models %}
+                  <li>✓ {{ model }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h5>Classification Models (6)</h5>
+              <ul class="list-unstyled">
+                {% for model in classification_models %}
+                  <li>✓ {{ model }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Training Form -->
+      <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+          <h4 class="mb-0">⚙️ Auto Train All Models</h4>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{% url 'dataapp:ml_section' %}" class="row g-3">
+            {% csrf_token %}
+            
+            <div class="col-md-8">
+              <label class="form-label"><strong>Select Target Column</strong></label>
+              <select class="form-select form-select-lg" name="target_column" required>
+                <option value="">-- Select Column --</option>
+                {% for col in columns %}
+                  <option value="{{ col }}" {% if col == selected_target %}selected{% endif %}>{{ col }}</option>
+                {% endfor %}
+              </select>
+              <small class="text-muted">The column you want to predict</small>
+            </div>
+            
+            <div class="col-md-4 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary btn-lg w-100">
+                🚀 Train All Models
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      {% if error %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <strong>⚠️ Error:</strong> {{ error }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endif %}
+
+      <!-- Results Section -->
+      {% if results %}
+        <div class="card mb-4">
+          <div class="card-header bg-success text-white">
+            <h4 class="mb-0">📊 Model Comparison Results</h4>
+            <small>All {{ results|length }} models trained successfully</small>
+          </div>
+          <div class="card-body">
+            
+            <!-- Best Model Highlight -->
+            {% if best_model %}
+              <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <h5 class="alert-heading">🏆 Best Model</h5>
+                <p class="mb-0"><strong>{{ best_model }}</strong></p>
+                <small>This model achieved the highest accuracy on test data</small>
+              </div>
+            {% endif %}
+
+            <!-- Comparison Table -->
+            <div class="table-responsive">
+              <table class="table table-striped table-hover table-bordered">
+                <thead class="table-dark">
+                  <tr>
+                    <th style="width: 20%">Model Name</th>
+                    <th style="width: 10%">Status</th>
+                    <th style="width: 12%">Accuracy</th>
+                    <th style="width: 12%">Precision</th>
+                    <th style="width: 12%">Recall</th>
+                    <th style="width: 10%">F1-Score</th>
+                    <th style="width: 12%">MAE/R²</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for result in results %}
+                    <tr class="{% if result.model_name == best_model %}table-success fw-bold{% endif %}">
+                      <td>
+                        <strong>{{ result.model_name }}</strong>
+                        {% if result.model_name == best_model %}
+                          <span class="badge bg-success ms-2">BEST</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if result.status == 'success' %}
+                          <span class="badge bg-success">✓ Success</span>
+                        {% else %}
+                          <span class="badge bg-danger">✗ Failed</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if result.accuracy %}
+                          <strong>{{ result.accuracy|floatformat:4 }}</strong>
+                        {% else %}
+                          <span class="text-muted">--</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if result.precision %}
+                          {{ result.precision|floatformat:4 }}
+                        {% else %}
+                          <span class="text-muted">--</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if result.recall %}
+                          {{ result.recall|floatformat:4 }}
+                        {% else %}
+                          <span class="text-muted">--</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if result.f1_score %}
+                          {{ result.f1_score|floatformat:4 }}
+                        {% else %}
+                          <span class="text-muted">--</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if result.mae %}
+                          MAE: {{ result.mae|floatformat:4 }}
+                        {% elif result.r2_score %}
+                          R²: {{ result.r2_score|floatformat:4 }}
+                        {% else %}
+                          <span class="text-muted">--</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Model Details -->
+            <div class="mt-4">
+              <h5>📈 Model Details</h5>
+              <div class="accordion" id="modelAccordion">
+                {% for result in results %}
+                  <div class="accordion-item">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button {% if result.status == 'failed' %}collapsed{% endif %}" 
+                              type="button" data-bs-toggle="collapse" 
+                              data-bs-target="#model{{ forloop.counter }}">
+                        {{ result.model_name }}
+                        {% if result.status == 'success' %}
+                          <span class="badge bg-success ms-2">{{ result.accuracy|floatformat:4 }}</span>
+                        {% else %}
+                          <span class="badge bg-danger ms-2">Error</span>
+                        {% endif %}
+                      </button>
+                    </h2>
+                    <div id="model{{ forloop.counter }}" class="accordion-collapse collapse" 
+                         data-bs-parent="#modelAccordion">
+                      <div class="accordion-body">
+                        {% if result.status == 'success' %}
+                          <dl class="row">
+                            {% if result.accuracy %}
+                              <dt class="col-sm-3">Accuracy:</dt>
+                              <dd class="col-sm-9"><strong>{{ result.accuracy|floatformat:6 }}</strong></dd>
+                            {% endif %}
+                            {% if result.precision %}
+                              <dt class="col-sm-3">Precision:</dt>
+                              <dd class="col-sm-9">{{ result.precision|floatformat:6 }}</dd>
+                            {% endif %}
+                            {% if result.recall %}
+                              <dt class="col-sm-3">Recall:</dt>
+                              <dd class="col-sm-9">{{ result.recall|floatformat:6 }}</dd>
+                            {% endif %}
+                            {% if result.f1_score %}
+                              <dt class="col-sm-3">F1-Score:</dt>
+                              <dd class="col-sm-9">{{ result.f1_score|floatformat:6 }}</dd>
+                            {% endif %}
+                            {% if result.mae %}
+                              <dt class="col-sm-3">MAE:</dt>
+                              <dd class="col-sm-9">{{ result.mae|floatformat:6 }}</dd>
+                            {% endif %}
+                            {% if result.rmse %}
+                              <dt class="col-sm-3">RMSE:</dt>
+                              <dd class="col-sm-9">{{ result.rmse|floatformat:6 }}</dd>
+                            {% endif %}
+                            {% if result.r2_score %}
+                              <dt class="col-sm-3">R² Score:</dt>
+                              <dd class="col-sm-9">{{ result.r2_score|floatformat:6 }}</dd>
+                            {% endif %}
+                          </dl>
+                        {% else %}
+                          <div class="alert alert-danger mb-0">
+                            <strong>Error:</strong> {{ result.error }}
+                          </div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="card text-center">
+              <div class="card-body">
+                <h6 class="card-title text-muted">Total Models Trained</h6>
+                <h3 class="text-primary">{{ results|length }}</h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card text-center">
+              <div class="card-body">
+                <h6 class="card-title text-muted">Problem Type</h6>
+                <h3 class="text-info text-capitalize">{{ problem_type }}</h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card text-center">
+              <div class="card-body">
+                <h6 class="card-title text-muted">Best Accuracy</h6>
+                {% if results %}
+                  <h3 class="text-success">{{ results.0.accuracy|floatformat:4 }}</h3>
+                {% else %}
+                  <h3 class="text-muted">N/A</h3>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      {% else %}
+        <div class="alert alert-info">
+          <strong>💡 Ready to Train:</strong> Select a target column and click "Train All Models" to start training.
+        </div>
+      {% endif %}
+
+      <!-- Navigation -->
+      <div class="card">
+        <div class="card-body">
+          <a href="{% url 'dataapp:home' %}" class="btn btn-secondary">← Back to Home</a>
+          <a href="{% url 'dataapp:ai_train' %}" class="btn btn-info">AI Auto Train</a>
+          <a href="{% url 'dataapp:analyze' %}" class="btn btn-success">Data Analysis</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .table-hover tbody tr:hover {
+    background-color: #f5f5f5 !important;
+  }
+  .table-success {
+    background-color: #d4edda !important;
+  }
+  .table-success:hover {
+    background-color: #c3e6cb !important;
+  }
+</style>
+{% endblock %}
